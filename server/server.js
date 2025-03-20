@@ -1,5 +1,3 @@
-// Update in server/server.js
-
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -18,11 +16,9 @@ import moduleRoutes from './routes/moduleRoutes.js';
 // Import middleware
 import { getUser } from './middleware/auth.js';
 
-// Import module seeder
-import { initializeModules } from './utils/moduleSeeder.js';
-
-// Import config
+// Import config and utils
 import setupPassport from './config/passport.js';
+import { initializeModules } from './utils/moduleSeeder.js';
 
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -61,14 +57,16 @@ setupPassport();
 // Add user to request if authenticated
 app.use(getUser);
 
-// Connect to MongoDB
+// Connect to MongoDB and initialize modules
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/starventured12');
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     
-    // Initialize modules after database connection
+    // Initialize modules after database connection is established
+    console.log('Initializing modules...');
     await initializeModules();
+    console.log('Modules initialized');
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${error.message}`);
     process.exit(1);
@@ -87,7 +85,6 @@ app.get('/api', (req, res) => {
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  // Assuming the build is in the project root's dist folder
   app.use(express.static(path.join(__dirname, '../dist')));
   
   app.get('*', (req, res) => {
@@ -99,7 +96,6 @@ if (process.env.NODE_ENV === 'production') {
 app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'API route not found' });
 });
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

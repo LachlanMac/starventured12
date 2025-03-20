@@ -21,12 +21,20 @@ interface Module {
   options: ModuleOption[];
 }
 
+interface SelectedOption {
+  location: string;
+  selectedAt: string;
+}
+
 interface CharacterModule {
-  moduleId: string;
-  selectedOptions: {
-    location: string;
-    selectedAt: string;
-  }[];
+  moduleId: {
+    _id: string;
+    name: string;
+    mtype: string;
+    ruleset: number;
+    options: ModuleOption[];
+  };
+  selectedOptions: SelectedOption[];
 }
 
 interface Character {
@@ -91,35 +99,58 @@ const ModulesPage: React.FC = () => {
   
   // Check if a module is selected by the character
   const isModuleSelected = (moduleId: string) => {
-    return character?.modules.some(m => m.moduleId === moduleId) || false;
+    return character?.modules.some(m => m.moduleId._id === moduleId) || false;
+  };
+  
+  // Get the character module for a given module ID
+  const getCharacterModule = (moduleId: string) => {
+    return character?.modules.find(m => m.moduleId._id === moduleId);
   };
   
   // Check if an option is selected by the character
   const isOptionSelected = (moduleId: string, location: string) => {
-    const charModule = character?.modules.find(m => m.moduleId === moduleId);
+    const charModule = getCharacterModule(moduleId);
     return charModule?.selectedOptions.some(o => o.location === location) || false;
   };
   
   // Check if an option can be selected (prerequisites met)
   const canSelectOption = (module: Module, location: string) => {
     // Always allow tier 1
-    if (location === '1') return true;
+    if (location === "1") return true;
     
     // Get parent tier number (e.g., "2" from "2a")
     const tierMatch = location.match(/^(\d+)/);
     if (!tierMatch) return false;
     
     const tier = parseInt(tierMatch[1]);
-    const parentTier = (tier - 1).toString();
     
-    // Check if a previous tier option is selected
-    const charModule = character?.modules.find(m => m.moduleId === module._id);
-    if (!charModule) return false;
-    
-    return charModule.selectedOptions.some(o => {
-      const optionTierMatch = o.location.match(/^(\d+)/);
-      return optionTierMatch && optionTierMatch[1] === parentTier;
-    });
+    // For tier 2 and above, check if the previous tier is selected
+    if (tier === 2) {
+      // For tier 2, check if tier 1 is selected
+      return isOptionSelected(module._id, "1");
+    } else {
+      // For tier 3+, either:
+      // 1. If it's a sub-option (e.g. "3a", "3b"), check if a tier 2 option is selected
+      // 2. If it's a main tier (e.g. "3"), check if any previous tier is selected
+      
+      const isSubOption = location.length > 1; // Like "3a", "4b", etc.
+      
+      if (isSubOption) {
+        // Need to check if the parent tier is selected
+        const parentTier = location.substring(0, 1);
+        const charModule = getCharacterModule(module._id);
+        
+        // Check if any option from the previous tier is selected
+        return charModule?.selectedOptions.some(o => o.location.startsWith(parentTier)) || false;
+      } else {
+        // Need to check if any option from the previous tier is selected
+        const previousTier = (tier - 1).toString();
+        const charModule = getCharacterModule(module._id);
+        
+        // Check if any option from the previous tier is selected
+        return charModule?.selectedOptions.some(o => o.location.startsWith(previousTier)) || false;
+      }
+    }
   };
   
   // Handle selecting a module
@@ -235,6 +266,101 @@ const ModulesPage: React.FC = () => {
     return tier >= 5 ? 3 : 2;
   };
   
+  // Format data string for display
+  const formatDataString = (dataString: string) => {
+    if (!dataString) return null;
+    
+    const effects = dataString.split(':');
+    const formattedEffects = effects.map(effect => {
+      // Match patterns and translate them
+      if (effect.startsWith('AV=')) {
+        return `Movement +${effect.substring(3)}`;
+      }
+      if (effect.startsWith('AH=')) {
+        return `Health +${effect.substring(3)}`;
+      }
+      if (effect.match(/^AD\d+=\d+$/)) {
+        const code = effect.substring(2, 3);
+        const value = effect.substring(4);
+        const mitigationTypes = {
+          '1': 'Kinetic',
+          '2': 'Cold',
+          '3': 'Heat',
+          '4': 'Electrical',
+          '5': 'Mental',
+          '6': 'Toxic',
+          '7': 'Sonic',
+          '8': 'Radiation'
+        };
+        const mitigation = mitigationTypes[code as keyof typeof mitigationTypes] || 'Unknown';
+        return `${mitigation} Mitigation +${value}`;
+      }
+      if (effect.match(/^AS[A-Z\d]+=\d+$/)) {
+        const code = effect.substring(2, 3);
+        const value = effect.substring(4);
+        const skillTypes = {
+          '1': 'Fitness',
+          '2': 'Deflect',
+          '3': 'Might',
+          '4': 'Evade',
+          '5': 'Stealth',
+          '6': 'Coordination',
+          '7': 'Resilience',
+          '8': 'Concentration',
+          '9': 'Senses',
+          'A': 'Science',
+          'B': 'Technology',
+          'C': 'Medicine',
+          'D': 'Xenology',
+          'E': 'Negotiation',
+          'F': 'Behavior',
+          'G': 'Presence'
+        };
+        const skill = skillTypes[code as keyof typeof skillTypes] || 'Unknown Skill';
+        return `${skill} +${value}`;
+      }
+      if (effect.match(/^AC\d+=\d+$/)) {
+        const code = effect.substring(2, 3);
+        const value = effect.substring(4);
+        const craftTypes = {
+          '1': 'Engineering',
+          '2': 'Fabrication',
+          '3': 'Biosculpting',
+          '4': 'Synthesis'
+        };
+        const craft = craftTypes[code as keyof typeof craftTypes] || 'Unknown Craft';
+        return `${craft} +${value}`;
+      }
+      if (effect.startsWith('TG')) {
+        return 'Trait';
+      }
+      if (effect.startsWith('ZX')) {
+        return 'Reaction';
+      }
+      if (effect.startsWith('XX')) {
+        return 'Action';
+      }
+      if (effect === 'Y') {
+        return 'Free Action';
+      }
+      
+      // Return the raw code if we don't have a translation
+      return effect;
+    });
+    
+    // If there are no translated effects, return null
+    if (formattedEffects.every(e => !e)) return null;
+    
+    // Return the formatted effects as a list
+    return (
+      <ul className="text-xs text-gray-400 mt-2">
+        {formattedEffects.map((effect, index) => (
+          effect && <li key={index}>{effect}</li>
+        ))}
+      </ul>
+    );
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
@@ -297,7 +423,7 @@ const ModulesPage: React.FC = () => {
       </div>
       
       {/* Module type tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
         <Button 
           variant={activeTab === 'all' ? 'accent' : 'secondary'}
           onClick={() => setActiveTab('all')}
@@ -454,7 +580,7 @@ const ModulesPage: React.FC = () => {
                         Module Options
                       </h3>
                       <p style={{ color: 'var(--color-cloud)' }}>
-                        Select options to customize your character. Each tier requires the previous tier to be selected.
+                        Select options to customize your character. Each tier requires selection from the previous tier.
                       </p>
                     </div>
                     
@@ -484,7 +610,8 @@ const ModulesPage: React.FC = () => {
                             }}>
                               {tierOptions.map(option => {
                                 const isSelected = isOptionSelected(selectedModule._id, option.location);
-                                const canSelect = canSelectOption(selectedModule, option.location);
+                                const canSelect = isModuleSelected(selectedModule._id) && 
+                                                canSelectOption(selectedModule, option.location);
                                 const optionCost = getOptionCost(option.location);
                                 const hasEnoughPoints = (character?.modulePoints.total || 0) - (character?.modulePoints.spent || 0) >= optionCost;
                                 
@@ -525,12 +652,15 @@ const ModulesPage: React.FC = () => {
                                     <p style={{ 
                                       color: 'var(--color-cloud)', 
                                       fontSize: '0.875rem',
-                                      marginBottom: '1rem' 
+                                      marginBottom: '0.5rem' 
                                     }}>
                                       {option.description}
                                     </p>
                                     
-                                    <div style={{ textAlign: 'right' }}>
+                                    {/* Display formatted data if available */}
+                                    {option.data && formatDataString(option.data)}
+                                    
+                                    <div style={{ textAlign: 'right', marginTop: '1rem' }}>
                                       {isSelected ? (
                                         <Button 
                                           variant="secondary" 

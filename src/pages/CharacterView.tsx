@@ -604,6 +604,7 @@ const CharacterView: React.FC = () => {
           >
             Modules
           </button>
+
           <button
             onClick={() => setActiveTab('actions')}
             style={{
@@ -839,115 +840,148 @@ const CharacterView: React.FC = () => {
           
           {/* Modules Tab */}
           {activeTab === 'modules' && (
-            <div>
-              {character.modules.length === 0 ? (
-                <Card variant="default">
-                  <CardBody>
-                    <div style={{ 
-                      textAlign: 'center',
-                      padding: '2rem'
-                    }}>
-                      <div style={{ 
-                        color: 'var(--color-cloud)',
-                        marginBottom: '1rem'
-                      }}>
-                        No modules selected yet.
-                      </div>
-                      <Button variant="secondary">Add Module</Button>
-                    </div>
-                  </CardBody>
-                </Card>
-              ) : (
-                character.modules.map(module => (
-                  <Card 
-                    key={module.id} 
-                    variant="default" 
-                    style={{ marginBottom: '1.5rem' }}
-                  >
-                    <CardHeader>
-                      <div style={{ 
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}>
-                        <h2 style={{ 
-                          color: 'var(--color-white)',
-                          fontSize: '1.25rem',
-                          fontWeight: 'bold'
-                        }}>
-                          {module.name}
-                        </h2>
-                        <span style={{
-                          backgroundColor: module.mtype === 'core' ? 
-                            'var(--color-sat-purple-faded)' : 
-                            'var(--color-metal-gold)',
-                          color: module.mtype === 'core' ? 
-                            'var(--color-white)' : 
-                            'var(--color-dark-surface)',
-                          fontSize: '0.75rem',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '0.25rem',
-                          fontWeight: 'bold',
-                          textTransform: 'capitalize'
-                        }}>
-                          {module.mtype}
-                        </span>
-                      </div>
-                    </CardHeader>
-                    <CardBody>
-                      <div style={{ 
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '1rem'
-                      }}>
-                        {module.options
-                          .filter(option => option.selected)
-                          .map(option => (
-                            <div 
-                              key={option.id}
-                              style={{
-                                backgroundColor: 'var(--color-dark-elevated)',
-                                borderRadius: '0.5rem',
-                                padding: '1rem',
-                                border: '1px solid var(--color-dark-border)'
-                              }}
-                            >
-                              <div style={{ 
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'start',
-                                marginBottom: '0.5rem'
-                              }}>
-                                <h3 style={{ 
-                                  color: 'var(--color-white)',
-                                  fontWeight: 'bold',
-                                  fontSize: '1rem'
-                                }}>
-                                  {option.name}
-                                </h3>
-                                <span style={{
-                                  color: 'var(--color-cloud)',
-                                  fontSize: '0.75rem'
-                                }}>
-                                  Cost: {option.cost}
-                                </span>
-                              </div>
-                              <p style={{ 
-                                color: 'var(--color-cloud)',
-                                fontSize: '0.875rem'
-                              }}>
-                                {option.description}
-                              </p>
-                            </div>
-                          ))
-                        }
-                      </div>
-                    </CardBody>
-                  </Card>
-                ))
-              )}
-            </div>
-          )}
+  <div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <h2 style={{ 
+        color: 'var(--color-white)',
+        fontSize: '1.5rem',
+        fontWeight: 'bold'
+      }}>
+        Character Modules
+      </h2>
+      
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{
+          backgroundColor: 'var(--color-dark-elevated)',
+          padding: '0.5rem 1rem',
+          borderRadius: '0.5rem',
+          color: 'var(--color-metal-gold)'
+        }}>
+          Module Points: <span style={{ fontWeight: 'bold' }}>
+            {character.modulePoints.total - character.modulePoints.spent}
+          </span> / {character.modulePoints.total}
+        </div>
+        
+        <Link to={`/characters/${character._id}/modules`}>
+          <Button variant="accent" size="sm">
+            Manage Modules
+          </Button>
+        </Link>
+      </div>
+    </div>
+    
+    {character.modules && character.modules.length > 0 ? (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {character.modules.map((module) => (
+          <Card key={module.moduleId._id} variant="default">
+            <CardHeader>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ 
+                  color: 'var(--color-white)',
+                  fontSize: '1.25rem',
+                  fontWeight: 'bold'
+                }}>
+                  {module.moduleId.name}
+                </h3>
+                <div style={{ 
+                  color: 'var(--color-cloud)',
+                  fontSize: '0.875rem',
+                  textTransform: 'capitalize'
+                }}>
+                  {module.moduleId.mtype}
+                </div>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <div style={{ marginBottom: '1rem' }}>
+                <h4 style={{ 
+                  color: 'var(--color-metal-gold)',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  marginBottom: '0.5rem'
+                }}>
+                  Selected Options:
+                </h4>
+                
+                {module.selectedOptions.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {module.selectedOptions.map((selectedOption) => {
+                      // Find the option details
+                      const option = module.moduleId.options.find(o => o.location === selectedOption.location);
+                      
+                      return option ? (
+                        <div 
+                          key={selectedOption.location}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            backgroundColor: 'var(--color-dark-elevated)',
+                            borderRadius: '0.375rem',
+                            border: '1px solid var(--color-dark-border)'
+                          }}
+                        >
+                          <div style={{ 
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: '0.25rem'
+                          }}>
+                            <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                              {option.name}
+                            </span>
+                            <span style={{ 
+                              color: 'var(--color-cloud)',
+                              fontSize: '0.75rem'
+                            }}>
+                              Tier {selectedOption.location.charAt(0)}
+                            </span>
+                          </div>
+                          
+                          <p style={{ 
+                            color: 'var(--color-cloud)',
+                            fontSize: '0.875rem'
+                          }}>
+                            {option.description}
+                          </p>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                ) : (
+                  <p style={{ color: 'var(--color-cloud)' }}>
+                    No options selected yet. Visit the Modules page to select options.
+                  </p>
+                )}
+              </div>
+              
+              <div style={{ textAlign: 'right' }}>
+                <Link to={`/characters/${character._id}/modules`}>
+                  <Button variant="secondary" size="sm">
+                    Manage Module
+                  </Button>
+                </Link>
+              </div>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+    ) : (
+      <div style={{
+        backgroundColor: 'var(--color-dark-surface)',
+        padding: '2rem',
+        borderRadius: '0.5rem',
+        textAlign: 'center'
+      }}>
+        <p style={{ color: 'var(--color-cloud)', marginBottom: '1rem' }}>
+          No modules added to this character yet.
+        </p>
+        <Link to={`/characters/${character._id}/modules`}>
+          <Button variant="accent">
+            Add Modules
+          </Button>
+        </Link>
+      </div>
+    )}
+  </div>
+)}
           
           {/* Actions Tab */}
           {activeTab === 'actions' && (
