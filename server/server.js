@@ -1,3 +1,5 @@
+// Update in server/server.js
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -11,9 +13,13 @@ import cookieParser from 'cookie-parser';
 // Import routes
 import characterRoutes from './routes/characterRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import moduleRoutes from './routes/moduleRoutes.js';
 
 // Import middleware
 import { getUser } from './middleware/auth.js';
+
+// Import module seeder
+import { initializeModules } from './utils/moduleSeeder.js';
 
 // Import config
 import setupPassport from './config/passport.js';
@@ -60,6 +66,9 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/starventured12');
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    
+    // Initialize modules after database connection
+    await initializeModules();
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${error.message}`);
     process.exit(1);
@@ -69,6 +78,7 @@ const connectDB = async () => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/characters', characterRoutes);
+app.use('/api/modules', moduleRoutes);
 
 // Root route for API health check
 app.get('/api', (req, res) => {

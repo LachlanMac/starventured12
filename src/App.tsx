@@ -1,8 +1,11 @@
+// Update App.tsx to include the ModulesPage route
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ReactNode } from 'react';
+
 // Layout Components
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -14,9 +17,12 @@ import Characters from './pages/Characters';
 import CharacterCreate from './pages/CharacterCreate';
 import CharacterView from './pages/CharacterView';
 import Campaigns from './pages/Campaigns';
+import ModulesPage from './pages/Modules';
+
 interface MainLayoutProps {
   children: ReactNode;
 }
+
 // Layout wrapper component
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => (
   <>
@@ -27,6 +33,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => (
     <Footer />
   </>
 );
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -55,6 +62,7 @@ const App: React.FC = () => {
               <Route element={<ProtectedRoute />}>
                 <Route path="/characters/create" element={<MainLayout><CharacterCreate /></MainLayout>} />
                 <Route path="/characters/:id" element={<MainLayout><CharacterView /></MainLayout>} />
+                <Route path="/characters/:id/modules" element={<MainLayout><ModulesPage /></MainLayout>} /> {/* Add the new route */}
                 {/* Add other protected routes here */}
               </Route>
             </Routes>

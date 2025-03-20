@@ -1,3 +1,4 @@
+// server/routes/characterRoutes.js
 import express from 'express';
 import {
   getCharacters,
@@ -7,11 +8,15 @@ import {
   deleteCharacter
 } from '../controllers/characterController.js';
 import { protect } from '../middleware/auth.js';
+import characterModuleRoutes from './characterModuleRoutes.js';
 
 const router = express.Router();
 
 // Apply authentication middleware to all character routes
 router.use(protect);
+
+// Mount the module routes
+router.use('/:characterId/modules', characterModuleRoutes);
 
 // Routes for /api/characters
 router.route('/')
