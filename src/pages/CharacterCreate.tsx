@@ -14,12 +14,99 @@ const ATTRIBUTES = [
   { id: 'social', name: 'Social', description: 'Charisma, empathy, and ability to influence others.' }
 ];
 
+// Skill mappings by attribute category
+const ATTRIBUTE_SKILLS = {
+  physique: [
+    { id: 'fitness', name: 'Fitness' },
+    { id: 'deflect', name: 'Deflect' },
+    { id: 'might', name: 'Might' },
+  ],
+  agility: [
+    { id: 'evade', name: 'Evade' },
+    { id: 'stealth', name: 'Stealth' },
+    { id: 'coordination', name: 'Coordination' },
+  ],
+  mind: [
+    { id: 'resilience', name: 'Resilience' },
+    { id: 'concentration', name: 'Concentration' },
+    { id: 'senses', name: 'Senses' },
+  ],
+  knowledge: [
+    { id: 'science', name: 'Science' },
+    { id: 'technology', name: 'Technology' },
+    { id: 'medicine', name: 'Medicine' },
+    { id: 'xenology', name: 'Xenology' },
+  ],
+  social: [
+    { id: 'negotiation', name: 'Negotiation' },
+    { id: 'behavior', name: 'Behavior' },
+    { id: 'presence', name: 'Presence' },
+  ],
+};
+
+// Specialized skills that don't depend on attributes
+const SPECIALIZED_SKILLS = [
+  { id: 'rangedWeapons', name: 'Ranged Weapons', defaultTalent: 1 },
+  { id: 'meleeWeapons', name: 'Melee Weapons', defaultTalent: 1 },
+  { id: 'weaponSystems', name: 'Weapon Systems', defaultTalent: 0 },
+  { id: 'heavyRangedWeapons', name: 'Heavy Ranged Weapons', defaultTalent: 0 },
+];
+
+// Crafting skills
+const CRAFTING_SKILLS = [
+  { id: 'engineering', name: 'Engineering' },
+  { id: 'fabrication', name: 'Fabrication' },
+  { id: 'biosculpting', name: 'Biosculpting' },
+  { id: 'synthesis', name: 'Synthesis' },
+];
+
+// Dice mapping from value 1-6 to dice types
+const DICE_TYPES = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20'];
+
 const CharacterCreate: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [pointsRemaining, setPointsRemaining] = useState<number>(7);
+  
+  // Tracking for attribute and talent points
+  const [attributePointsRemaining, setAttributePointsRemaining] = useState<number>(5);
+  const [talentStarsRemaining, setTalentStarsRemaining] = useState<number>(5);
+  
+  // Initialize skills for each attribute
+  const initializeSkills = () => {
+    const skills: Record<string, { value: number, talent: number }> = {};
+    
+    Object.values(ATTRIBUTE_SKILLS).forEach(skillGroup => {
+      skillGroup.forEach(skill => {
+        skills[skill.id] = { value: 1, talent: 0 }; // Start with 1d4 and talent based on attribute
+      });
+    });
+    
+    return skills;
+  };
+  
+  // Initialize weapon skills
+  const initializeWeaponSkills = () => {
+    const weaponSkills: Record<string, { value: number, talent: number }> = {};
+    
+    SPECIALIZED_SKILLS.forEach(skill => {
+      weaponSkills[skill.id] = { value: 1, talent: skill.defaultTalent }; // Start with 1d4 and default talent
+    });
+    
+    return weaponSkills;
+  };
+  
+  // Initialize crafting skills
+  const initializeCraftingSkills = () => {
+    const craftingSkills: Record<string, { value: number, talent: number }> = {};
+    
+    CRAFTING_SKILLS.forEach(skill => {
+      craftingSkills[skill.id] = { value: 1, talent: 0 }; // Start with 1d4 and 0 talent
+    });
+    
+    return craftingSkills;
+  };
   
   // Character state
   const [character, setCharacter] = useState({
@@ -30,13 +117,16 @@ const CharacterCreate: React.FC = () => {
       spent: 0
     },
     attributes: {
-      physique: 2,
-      agility: 2,
-      mind: 2,
-      knowledge: 2,
-      social: 2
+      physique: 1,
+      agility: 1,
+      mind: 1,
+      knowledge: 1,
+      social: 1
     },
-    level: 1, // Will be calculated from modulePoints.total
+    skills: initializeSkills(),
+    weaponSkills: initializeWeaponSkills(),
+    craftingSkills: initializeCraftingSkills(),
+    level: 1,
     physicalTraits: {
       size: '',
       weight: '',
@@ -45,6 +135,10 @@ const CharacterCreate: React.FC = () => {
     },
     biography: '',
     appearance: '',
+    characterCreation: {
+      attributePointsRemaining: 5,
+      talentStarsRemaining: 5
+    },
     // For testing, hardcode a userId - in a real app this would come from auth
     userId: 'test-user-id'
   });
@@ -88,8 +182,14 @@ const CharacterCreate: React.FC = () => {
     const oldValue = character.attributes[attribute as keyof typeof character.attributes];
     const pointDifference = oldValue - newValue;
     
-    if (pointsRemaining + pointDifference < 0) {
+    // Check if there are enough points and if the value is within bounds
+    if (attributePointsRemaining + pointDifference < 0) {
       // Not enough points
+      return;
+    }
+    
+    if (newValue < 1 || newValue > 3) {
+      // Outside valid range
       return;
     }
     
@@ -99,12 +199,120 @@ const CharacterCreate: React.FC = () => {
       [attribute]: newValue
     };
     
+    // Update skills talent based on new attribute value
+    const newSkills = { ...character.skills };
+    
+    // Update the talent for all skills in this attribute group
+    if (ATTRIBUTE_SKILLS[attribute as keyof typeof ATTRIBUTE_SKILLS]) {
+      ATTRIBUTE_SKILLS[attribute as keyof typeof ATTRIBUTE_SKILLS].forEach(skill => {
+        newSkills[skill.id] = {
+          ...newSkills[skill.id],
+          talent: newValue // Attribute value determines talent for related skills
+        };
+      });
+    }
+    
     setCharacter(prev => ({
       ...prev,
-      attributes: newAttributes
+      attributes: newAttributes,
+      skills: newSkills
     }));
     
-    setPointsRemaining(prev => prev + pointDifference);
+    setAttributePointsRemaining(prev => prev + pointDifference);
+  };
+
+  // Update skill value (dice type)
+  const updateSkillValue = (skillId: string, newValue: number) => {
+    if (newValue < 1 || newValue > 6) {
+      return; // Invalid value
+    }
+    
+    setCharacter(prev => ({
+      ...prev,
+      skills: {
+        ...prev.skills,
+        [skillId]: {
+          ...prev.skills[skillId],
+          value: newValue
+        }
+      }
+    }));
+  };
+
+  // Update specialized skill talent
+  const updateSpecializedSkillTalent = (skillId: string, newTalent: number) => {
+    if (newTalent < 0 || newTalent > 3) {
+      return; // Invalid value
+    }
+    
+    const oldTalent = character.weaponSkills[skillId as keyof typeof character.weaponSkills].talent;
+    const starDifference = oldTalent - newTalent;
+    
+    if (talentStarsRemaining + starDifference < 0) {
+      // Not enough talent stars
+      return;
+    }
+    
+    setCharacter(prev => ({
+      ...prev,
+      weaponSkills: {
+        ...prev.weaponSkills,
+        [skillId]: {
+          ...prev.weaponSkills[skillId as keyof typeof prev.weaponSkills],
+          talent: newTalent
+        }
+      }
+    }));
+    
+    setTalentStarsRemaining(prev => prev + starDifference);
+  };
+
+  // Update crafting skill talent
+  const updateCraftingSkillTalent = (skillId: string, newTalent: number) => {
+    if (newTalent < 0 || newTalent > 3) {
+      return; // Invalid value
+    }
+    
+    const oldTalent = character.craftingSkills[skillId as keyof typeof character.craftingSkills].talent;
+    const starDifference = oldTalent - newTalent;
+    
+    if (talentStarsRemaining + starDifference < 0) {
+      // Not enough talent stars
+      return;
+    }
+    
+    setCharacter(prev => ({
+      ...prev,
+      craftingSkills: {
+        ...prev.craftingSkills,
+        [skillId]: {
+          ...prev.craftingSkills[skillId as keyof typeof prev.craftingSkills],
+          talent: newTalent
+        }
+      }
+    }));
+    
+    setTalentStarsRemaining(prev => prev + starDifference);
+  };
+
+  // Render talent stars
+  const renderTalentStars = (talent: number, maxTalent: number = 3) => {
+    return (
+      <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
+        {Array.from({ length: maxTalent }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: '1rem',
+              height: '1rem',
+              borderRadius: '50%',
+              backgroundColor: i < talent ? 'var(--color-metal-gold)' : 'var(--color-dark-elevated)',
+              border: '1px solid var(--color-metal-gold)'
+            }}
+          />
+        ))}
+      </div>
+    );
   };
 
   // Validate the current step
@@ -119,6 +327,22 @@ const CharacterCreate: React.FC = () => {
         }
         if (!character.race) {
           setError('Please select a race');
+          return false;
+        }
+        return true;
+      
+      case 2:
+        // Check if all attribute points have been spent
+        if (attributePointsRemaining > 0) {
+          setError(`You still have ${attributePointsRemaining} attribute points to spend`);
+          return false;
+        }
+        return true;
+        
+      case 3:
+        // Check if all talent stars have been spent
+        if (talentStarsRemaining > 0) {
+          setError(`You still have ${talentStarsRemaining} talent stars to assign`);
           return false;
         }
         return true;
@@ -154,12 +378,19 @@ const CharacterCreate: React.FC = () => {
         name: character.name,
         race: character.race,
         attributes: character.attributes,
+        skills: character.skills,
+        weaponSkills: character.weaponSkills,
+        craftingSkills: character.craftingSkills,
         modulePoints: character.modulePoints,
         level: character.level,
         userId: character.userId,
         biography: character.biography,
         appearance: character.appearance,
-        physicalTraits: character.physicalTraits
+        physicalTraits: character.physicalTraits,
+        characterCreation: {
+          attributePointsRemaining: attributePointsRemaining,
+          talentStarsRemaining: talentStarsRemaining
+        }
       };
 
       // In a real app, this would call your API
@@ -168,7 +399,6 @@ const CharacterCreate: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add CORS headers to ensure the request is accepted
           'Access-Control-Allow-Origin': '*'
         },
         body: JSON.stringify(characterData),
@@ -227,6 +457,7 @@ const CharacterCreate: React.FC = () => {
               {[
                 "Basic Info", 
                 "Attributes",
+                "Talents",
                 "Background"
               ].map((stepName, index) => (
                 <div 
@@ -263,7 +494,7 @@ const CharacterCreate: React.FC = () => {
                   >
                     {stepName}
                   </span>
-                  {index < 2 && (
+                  {index < 3 && (
                     <div 
                       style={{
                         position: 'absolute',
@@ -395,7 +626,15 @@ const CharacterCreate: React.FC = () => {
                         padding: '0.5rem 0.75rem'
                       }}
                       value={character.modulePoints.total}
-                      onChange={(e) => updateModulePoints(parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        const level = Math.floor(value / 10);
+                        updateCharacter('modulePoints', {
+                          total: value,
+                          spent: 0
+                        });
+                        updateCharacter('level', level > 0 ? level : 1);
+                      }}
                     />
                     <div style={{
                       backgroundColor: 'var(--color-dark-elevated)',
@@ -448,6 +687,26 @@ const CharacterCreate: React.FC = () => {
                     )}
                   </div>
                 </div>
+                
+                <div style={{ 
+                  backgroundColor: 'var(--color-dark-elevated)',
+                  borderRadius: '0.5rem',
+                  padding: '1rem',
+                  marginTop: '2rem'
+                }}>
+                  <h3 style={{ 
+                    color: 'var(--color-white)',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Character Creation Point System
+                  </h3>
+                  <p style={{ color: 'var(--color-cloud)', fontSize: '0.875rem' }}>
+                    In the next steps, you will distribute <strong style={{ color: 'var(--color-metal-gold)' }}>5 attribute points</strong> and <strong style={{ color: 'var(--color-metal-gold)' }}>5 talent stars</strong>. 
+                    Attributes determine how many dice you roll for related skills, while talent stars determine specialized skills not tied to attributes.
+                  </p>
+                </div>
               </div>
             )}
             
@@ -471,9 +730,9 @@ const CharacterCreate: React.FC = () => {
                     backgroundColor: 'var(--color-dark-elevated)',
                     padding: '0.5rem 1rem',
                     borderRadius: '0.375rem',
-                    color: pointsRemaining > 0 ? 'var(--color-metal-gold)' : 'var(--color-white)'
+                    color: attributePointsRemaining > 0 ? 'var(--color-metal-gold)' : 'var(--color-white)'
                   }}>
-                    Points Remaining: <span style={{ fontWeight: 'bold' }}>{pointsRemaining}</span>
+                    Points Remaining: <span style={{ fontWeight: 'bold' }}>{attributePointsRemaining}</span>
                   </div>
                 </div>
                 
@@ -481,8 +740,8 @@ const CharacterCreate: React.FC = () => {
                   color: 'var(--color-cloud)',
                   marginBottom: '1.5rem'
                 }}>
-                  Attributes define your character's basic capabilities. Skills and abilities are acquired through modules after character creation.
-                  The default value for each attribute is 2.
+                  Attributes define your character's basic capabilities. Each attribute has a maximum value of 3 and determines the number of dice you roll for related skills.
+                  All attributes start at 1.
                 </p>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -545,8 +804,8 @@ const CharacterCreate: React.FC = () => {
                         
                         <button
                           type="button"
-                          disabled={character.attributes[attribute.id as keyof typeof character.attributes] >= 5 || pointsRemaining <= 0}
-                          onClick={() => updateAttribute(attribute.id, Math.min(5, character.attributes[attribute.id as keyof typeof character.attributes] + 1))}
+                          disabled={character.attributes[attribute.id as keyof typeof character.attributes] >= 3 || attributePointsRemaining <= 0}
+                          onClick={() => updateAttribute(attribute.id, Math.min(3, character.attributes[attribute.id as keyof typeof character.attributes] + 1))}
                           style={{
                             width: '2.5rem',
                             height: '2.5rem',
@@ -554,8 +813,8 @@ const CharacterCreate: React.FC = () => {
                             backgroundColor: 'var(--color-dark-elevated)',
                             color: 'var(--color-white)',
                             border: 'none',
-                            cursor: (character.attributes[attribute.id as keyof typeof character.attributes] >= 5 || pointsRemaining <= 0) ? 'not-allowed' : 'pointer',
-                            opacity: (character.attributes[attribute.id as keyof typeof character.attributes] >= 5 || pointsRemaining <= 0) ? 0.5 : 1
+                            cursor: (character.attributes[attribute.id as keyof typeof character.attributes] >= 3 || attributePointsRemaining <= 0) ? 'not-allowed' : 'pointer',
+                            opacity: (character.attributes[attribute.id as keyof typeof character.attributes] >= 3 || attributePointsRemaining <= 0) ? 0.5 : 1
                           }}
                         >
                           +
@@ -574,11 +833,35 @@ const CharacterCreate: React.FC = () => {
                             top: 0,
                             left: 0,
                             height: '100%',
-                            width: `${(character.attributes[attribute.id as keyof typeof character.attributes] / 5) * 100}%`,
+                            width: `${(character.attributes[attribute.id as keyof typeof character.attributes] / 3) * 100}%`,
                             backgroundColor: 'var(--color-sat-purple)',
                             borderRadius: '0.375rem',
                             transition: 'width 0.3s'
                           }} />
+                        </div>
+                      </div>
+                      
+                      {/* Show related skills */}
+                      <div style={{ 
+                        marginTop: '0.5rem', 
+                        paddingLeft: '0.5rem', 
+                        borderLeft: '2px solid var(--color-dark-border)'
+                      }}>
+                        <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                          Related skills: 
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {ATTRIBUTE_SKILLS[attribute.id as keyof typeof ATTRIBUTE_SKILLS].map(skill => (
+                            <div key={skill.id} style={{ 
+                              backgroundColor: 'var(--color-dark-elevated)',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.75rem',
+                              color: 'var(--color-white)'
+                            }}>
+                              {skill.name} ({character.attributes[attribute.id as keyof typeof character.attributes]} dice)
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -591,16 +874,228 @@ const CharacterCreate: React.FC = () => {
                   padding: '1.5rem',
                   marginTop: '2rem'
                 }}>
+                  <h3 style={{ color: 'var(--color-metal-gold)', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                    Dice System
+                  </h3>
                   <p style={{ color: 'var(--color-cloud)' }}>
-                    Your character's skills, abilities, and other traits will be determined by the modules you select after character creation. 
-                    Modules will allow you to customize your character based on your preferred playstyle.
+                    For skill checks, you'll roll a number of dice equal to your attribute value (1-3). 
+                    Each skill has a die type from 1d4 to 1d20 that you'll set in the next step.
                   </p>
                 </div>
               </div>
             )}
             
-            {/* Step 3: Background */}
-            {step === 3 && (
+{/* Step 3: Talents */}
+{step === 3 && (
+              <div>
+                <div style={{ 
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '1.5rem'
+                }}>
+                  <h2 style={{ 
+                    color: 'var(--color-white)',
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold'
+                  }}>
+                    Talents & Specialized Skills
+                  </h2>
+                  <div style={{
+                    backgroundColor: 'var(--color-dark-elevated)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.375rem',
+                    color: talentStarsRemaining > 0 ? 'var(--color-metal-gold)' : 'var(--color-white)'
+                  }}>
+                    Talent Stars: <span style={{ fontWeight: 'bold' }}>{talentStarsRemaining}</span>
+                  </div>
+                </div>
+                
+                <p style={{ 
+                  color: 'var(--color-cloud)',
+                  marginBottom: '1.5rem'
+                }}>
+                  Assign talent stars to specialized skills that don't depend on attributes. 
+                  Ranged and Melee weapons start with 1 talent star by default.
+                </p>
+                
+                {/* Weapon Skills */}
+                <div>
+                  <h3 style={{ 
+                    color: 'var(--color-white)',
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold',
+                    marginBottom: '1rem' 
+                  }}>
+                    Weapon Skills
+                  </h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    {SPECIALIZED_SKILLS.map(skill => (
+                      <div key={skill.id} style={{
+                        backgroundColor: 'var(--color-dark-elevated)',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{ 
+                          color: 'var(--color-white)', 
+                          fontWeight: 'bold'
+                        }}>
+                          {skill.name}
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                          {[1, 2, 3].map(talentPosition => {
+                            const isFilled = character.weaponSkills[skill.id as keyof typeof character.weaponSkills].talent >= talentPosition;
+                            
+                            // Determine if this is the first star (position 1)
+                            const isFirstStar = talentPosition === 1;
+                            
+                            // Calculate if this star can be toggled based on current talent and available stars
+                            // First star (position 1) for weapon skills can't be toggled off
+                            const canToggleOn = !isFilled && character.weaponSkills[skill.id as keyof typeof character.weaponSkills].talent === talentPosition - 1 && talentStarsRemaining > 0;
+                            const canToggleOff = isFilled && talentPosition === character.weaponSkills[skill.id as keyof typeof character.weaponSkills].talent && !isFirstStar;
+                            
+                            return (
+                              <button
+                                key={talentPosition}
+                                onClick={() => {
+                                  if (isFilled && canToggleOff) {
+                                    // If star is filled and it's the highest filled star (and not the first star), turn it off
+                                    updateSpecializedSkillTalent(skill.id, talentPosition - 1);
+                                  } else if (!isFilled && canToggleOn) {
+                                    // If star is empty and it's the next one in sequence, turn it on
+                                    updateSpecializedSkillTalent(skill.id, talentPosition);
+                                  }
+                                }}
+                                disabled={!canToggleOn && !canToggleOff}
+                                style={{
+                                  width: '1.5rem',
+                                  height: '1.5rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  cursor: (canToggleOn || canToggleOff) ? 'pointer' : 'default',
+                                  opacity: (canToggleOn || canToggleOff || isFilled) ? 1 : 0.5,
+                                  color: isFilled ? 'var(--color-metal-gold)' : 'var(--color-dark-surface)',
+                                  fontSize: '1.25rem'
+                                }}
+                                aria-label={`Set talent to ${talentPosition}`}
+                              >
+                                {/* Star symbol */}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isFilled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Crafting Skills */}
+                <div style={{ marginTop: '2rem' }}>
+                  <h3 style={{ 
+                    color: 'var(--color-white)',
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold',
+                    marginBottom: '1rem' 
+                  }}>
+                    Crafting Skills
+                  </h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    {CRAFTING_SKILLS.map(skill => (
+                      <div key={skill.id} style={{
+                        backgroundColor: 'var(--color-dark-elevated)',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{ 
+                          color: 'var(--color-white)', 
+                          fontWeight: 'bold'
+                        }}>
+                          {skill.name}
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                          {[1, 2, 3].map(talentPosition => {
+                            const isFilled = character.craftingSkills[skill.id as keyof typeof character.craftingSkills].talent >= talentPosition;
+                            // Calculate if this star can be toggled based on current talent and available stars
+                            const canToggleOn = !isFilled && character.craftingSkills[skill.id as keyof typeof character.craftingSkills].talent === talentPosition - 1 && talentStarsRemaining > 0;
+                            const canToggleOff = isFilled && talentPosition === character.craftingSkills[skill.id as keyof typeof character.craftingSkills].talent;
+                            
+                            return (
+                              <button
+                                key={talentPosition}
+                                onClick={() => {
+                                  if (isFilled && canToggleOff) {
+                                    // If star is filled and it's the highest filled star, turn it off
+                                    updateCraftingSkillTalent(skill.id, talentPosition - 1);
+                                  } else if (!isFilled && canToggleOn) {
+                                    // If star is empty and it's the next one in sequence, turn it on
+                                    updateCraftingSkillTalent(skill.id, talentPosition);
+                                  }
+                                }}
+                                disabled={!canToggleOn && !canToggleOff}
+                                style={{
+                                  width: '1.5rem',
+                                  height: '1.5rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  cursor: (canToggleOn || canToggleOff) ? 'pointer' : 'default',
+                                  opacity: (canToggleOn || canToggleOff || isFilled) ? 1 : 0.5,
+                                  color: isFilled ? 'var(--color-metal-gold)' : 'var(--color-dark-surface)',
+                                  fontSize: '1.25rem'
+                                }}
+                                aria-label={`Set talent to ${talentPosition}`}
+                              >
+                                {/* Star symbol */}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isFilled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div style={{
+                  backgroundColor: 'var(--color-dark-elevated)',
+                  borderRadius: '0.5rem',
+                  padding: '1.5rem',
+                  marginTop: '2rem'
+                }}>
+                  <h3 style={{ color: 'var(--color-metal-gold)', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                    Talent System
+                  </h3>
+                  <p style={{ color: 'var(--color-cloud)' }}>
+                    Each talent star represents a die you roll when using that skill. For example, if you have 2 talent stars in Ranged Weapons,
+                    you'll roll 2 dice for ranged weapon checks.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            
+            {/* Step 4: Background */}
+            {step === 4 && (
               <div>
                 <h2 style={{ 
                   color: 'var(--color-white)',
@@ -768,7 +1263,7 @@ const CharacterCreate: React.FC = () => {
                 </Button>
               )}
               
-              {step < 3 ? (
+              {step < 4 ? (
                 <Button variant="accent" onClick={handleNextStep} style={{ marginLeft: 'auto' }}>
                   Next
                 </Button>

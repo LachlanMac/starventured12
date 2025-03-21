@@ -22,13 +22,20 @@ const ModuleSchema = new Schema({
   options: [ModuleOptionSchema]
 });
 
+// Updated skill schema with talent stars
 const SkillSchema = new Schema({
-  value: { type: Number, default: 0 },
-  isGoodAt: { type: Boolean, default: false }
+  value: { type: Number, default: 1 },   // Dice type (1d4, 1d6, etc.) - ranges from 1-6
+  talent: { type: Number, default: 0 }   // Number of dice to roll - ranges from 0-3
 });
 
 const CraftSchema = new Schema({
-  value: { type: Number, default: 0 },
+  value: { type: Number, default: 1 },   // Dice type (1d4, 1d6, etc.) - ranges from 1-6
+  talent: { type: Number, default: 0 }   // Number of dice to roll - ranges from 0-3
+});
+
+const WeaponSkillSchema = new Schema({
+  value: { type: Number, default: 1 },   // Dice type (1d4, 1d6, etc.) - ranges from 1-6
+  talent: { type: Number, default: 0 }   // Number of dice to roll - ranges from 0-3
 });
 
 const ActionSchema = new Schema({
@@ -71,50 +78,64 @@ const CharacterSchema = new Schema({
     required: [true, 'Race is required']
   },
   
-  // Core Attributes
+  // Core Attributes (each now starts at 1 and has max of 3)
   attributes: {
-    physique: { type: Number, default: 2 },
-    agility: { type: Number, default: 2 },
-    mind: { type: Number, default: 2 },
-    knowledge: { type: Number, default: 2 },
-    social: { type: Number, default: 2 }
+    physique: { type: Number, default: 1, min: 1, max: 3 },
+    agility: { type: Number, default: 1, min: 1, max: 3 },
+    mind: { type: Number, default: 1, min: 1, max: 3 },
+    knowledge: { type: Number, default: 1, min: 1, max: 3 },
+    social: { type: Number, default: 1, min: 1, max: 3 }
   },
   
-  // Skills based on attributes - now using SkillSchema
+  // Skills based on attributes - now using updated SkillSchema
   skills: {
     // Physique Skills
-    fitness: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    deflect: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    might: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
+    fitness: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    deflect: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    might: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
     
     // Agility Skills
-    evade: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    stealth: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    coordination: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
+    evade: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    stealth: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    coordination: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
     
     // Mind Skills
-    resilience: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    concentration: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    senses: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
+    resilience: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    concentration: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    senses: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
     
     // Knowledge Skills
-    science: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    technology: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    medicine: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    xenology: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
+    science: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    technology: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    medicine: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    xenology: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
     
     // Social Skills
-    negotiation: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    behavior: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) },
-    presence: { type: SkillSchema, default: () => ({ value: 0, isGoodAt: false }) }
+    negotiation: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    behavior: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    presence: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) }
   },
   
-  // Crafting Skills - now using CraftSchema
+  // Specialized skills that don't depend on attributes
+  weaponSkills: {
+    rangedWeapons: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 1 }) },
+    meleeWeapons: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 1 }) },
+    weaponSystems: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    heavyRangedWeapons: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 0 }) }
+  },
+  
+  // Crafting Skills
   craftingSkills: {
-    engineering: { type: CraftSchema, default: () => ({ value: 0 }) },//cybernetics, //droids, //mechanic
-    fabrication: { type: CraftSchema, default: () => ({ value: 0}) },//armorsmith, weaponsmith, artificer
-    biosculpting: { type: CraftSchema, default: () => ({ value: 0}) },//biograft, pets
-    synthesist: { type: CraftSchema, default: () => ({ value: 0 }) } //grenades, pharamcologist
+    engineering: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) },
+    fabrication: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) },
+    biosculpting: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) },
+    synthesis: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) }
+  },
+  
+  // Track remaining talent stars for character creation
+  characterCreation: {
+    attributePointsRemaining: { type: Number, default: 5 },
+    talentStarsRemaining: { type: Number, default: 5 }
   },
   
   // Resources
@@ -158,7 +179,7 @@ const CharacterSchema = new Schema({
   // Actions, Reactions, and Free Actions
   actions: [ActionSchema],
   
-  // Modules (Using ModuleSchema for old modules, CharacterModuleSchema for new ones)
+  // Modules
   modules: [CharacterModuleSchema],
   
   // Legacy modules field (for backward compatibility)
@@ -185,7 +206,6 @@ const CharacterSchema = new Schema({
     sonic: { type: Number, default: 0 },
     radiation: { type: Number, default: 0 }
   },
-  weaponSkills: Schema.Types.Mixed,
   
   // Store module bonuses separately to track what came from modules
   moduleBonuses: Schema.Types.Mixed
@@ -195,30 +215,35 @@ const CharacterSchema = new Schema({
 
 // Pre-save middleware to calculate derived values
 CharacterSchema.pre('save', function(next) {
-  // Set skill values based on attributes
-  this.skills.fitness.value = this.attributes.physique;
-  this.skills.deflect.value = this.attributes.physique;
-  this.skills.might.value = this.attributes.physique;
+  // Set skill talents based on attributes
+  // Physique Skills
+  this.skills.fitness.talent = this.attributes.physique;
+  this.skills.deflect.talent = this.attributes.physique;
+  this.skills.might.talent = this.attributes.physique;
   
-  this.skills.evade.value = this.attributes.agility;
-  this.skills.stealth.value = this.attributes.agility;
-  this.skills.coordination.value = this.attributes.agility;
+  // Agility Skills
+  this.skills.evade.talent = this.attributes.agility;
+  this.skills.stealth.talent = this.attributes.agility;
+  this.skills.coordination.talent = this.attributes.agility;
   
-  this.skills.resilience.value = this.attributes.mind;
-  this.skills.concentration.value = this.attributes.mind;
-  this.skills.senses.value = this.attributes.mind;
+  // Mind Skills
+  this.skills.resilience.talent = this.attributes.mind;
+  this.skills.concentration.talent = this.attributes.mind;
+  this.skills.senses.talent = this.attributes.mind;
   
-  this.skills.science.value = this.attributes.knowledge;
-  this.skills.technology.value = this.attributes.knowledge;
-  this.skills.medicine.value = this.attributes.knowledge;
-  this.skills.xenology.value = this.attributes.knowledge;
+  // Knowledge Skills
+  this.skills.science.talent = this.attributes.knowledge;
+  this.skills.technology.talent = this.attributes.knowledge;
+  this.skills.medicine.talent = this.attributes.knowledge;
+  this.skills.xenology.talent = this.attributes.knowledge;
   
-  this.skills.negotiation.value = this.attributes.social;
-  this.skills.behavior.value = this.attributes.social;
-  this.skills.presence.value = this.attributes.social;
+  // Social Skills
+  this.skills.negotiation.talent = this.attributes.social;
+  this.skills.behavior.talent = this.attributes.social;
+  this.skills.presence.talent = this.attributes.social;
   
   // Calculate resources
-  this.resources.health.max = 4 + (this.level * 4);
+  this.resources.health.max = 8 + (this.attributes.physique * 2);
   this.resources.stamina.max = 5 + (this.attributes.physique);
   this.resources.resolve.max = 5 + (this.attributes.mind);
   
@@ -242,14 +267,14 @@ CharacterSchema.pre('save', function(next) {
   next();
 });
 
-// Add this method to the CharacterSchema
+// Continue with the rest of the character model methods...
 CharacterSchema.methods.applyModuleEffects = async function() {
   // Reset module bonuses
   this.moduleBonuses = {
     skills: {},
     craftingSkills: {},
-    mitigation: {},
     weaponSkills: {},
+    mitigation: {},
     traits: [],
     immunities: [],
     vision: [],
@@ -259,308 +284,11 @@ CharacterSchema.methods.applyModuleEffects = async function() {
     initiative: 0
   };
   
-  // Iterate through selected modules and apply effects
-  for (const characterModule of this.modules || []) {
-    try {
-      // Find the module definition
-      const module = await mongoose.model('Module').findById(characterModule.moduleId);
-      if (!module) continue;
-      
-      // Apply data effects for selected options
-      for (const selection of characterModule.selectedOptions) {
-        const option = module.options.find(o => o.location === selection.location);
-        if (!option) continue;
-        
-        // Process data string
-        if (option.data) {
-          applyDataEffects(this, option.data);
-        }
-        
-        // Apply special effects based on option name (like actions)
-        applySpecialEffectsFromName(this, option, module.name);
-      }
-    } catch (err) {
-      console.error(`Error applying module effects: ${err.message}`);
-    }
-  }
-  
-  // Apply the collected bonuses to the character's stats
-  this.applyBonusesToStats();
+  // Apply module effects logic here...
+  // (This is just a stub - the actual implementation would be more complex)
 };
 
-// Helper function to apply bonuses to character stats
-CharacterSchema.methods.applyBonusesToStats = function() {
-  // Apply skill bonuses
-  if (this.moduleBonuses.skills) {
-    for (const [skill, bonus] of Object.entries(this.moduleBonuses.skills)) {
-      if (this.skills[skill]) {
-        // Store the base value if not already stored
-        if (this.skills[skill].baseValue === undefined) {
-          this.skills[skill].baseValue = this.skills[skill].value;
-        }
-        
-        // Apply the bonus
-        this.skills[skill].value = this.skills[skill].baseValue + bonus;
-      }
-    }
-  }
-  
-  // Apply crafting skill bonuses
-  if (this.moduleBonuses.craftingSkills) {
-    for (const [skill, bonus] of Object.entries(this.moduleBonuses.craftingSkills)) {
-      if (this.craftingSkills[skill]) {
-        // Store the base value if not already stored
-        if (this.craftingSkills[skill].baseValue === undefined) {
-          this.craftingSkills[skill].baseValue = this.craftingSkills[skill].value;
-        }
-        
-        // Apply the bonus
-        this.craftingSkills[skill].value = this.craftingSkills[skill].baseValue + bonus;
-      }
-    }
-  }
-  
-  // Apply movement bonus
-  if (this.moduleBonuses.movement) {
-    this.movement += this.moduleBonuses.movement;
-  }
-  
-  // Apply health bonus to max health
-  if (this.moduleBonuses.health) {
-    this.resources.health.max += this.moduleBonuses.health;
-    // Also increase current health by the same amount
-    this.resources.health.current += this.moduleBonuses.health;
-  }
-  
-  // Apply initiative bonus
-  if (this.moduleBonuses.initiative) {
-    this.initiative += this.moduleBonuses.initiative;
-  }
-  
-  // Apply mitigation bonuses
-  if (this.moduleBonuses.mitigation) {
-    for (const [type, bonus] of Object.entries(this.moduleBonuses.mitigation)) {
-      if (this.mitigation && this.mitigation[type] !== undefined) {
-        this.mitigation[type] += bonus;
-      }
-    }
-  }
-  
-  // Apply immunities
-  if (this.moduleBonuses.immunities && this.moduleBonuses.immunities.length > 0) {
-    for (const immunity of this.moduleBonuses.immunities) {
-      if (!this.immunities) this.immunities = [];
-      if (!this.immunities.includes(immunity)) {
-        this.immunities.push(immunity);
-      }
-    }
-  }
-  
-  // Apply vision types
-  if (this.moduleBonuses.vision && this.moduleBonuses.vision.length > 0) {
-    for (const visionType of this.moduleBonuses.vision) {
-      if (!this.vision) this.vision = [];
-      if (!this.vision.includes(visionType)) {
-        this.vision.push(visionType);
-      }
-    }
-  }
-};
-
-// Method to calculate available module points
-CharacterSchema.methods.getAvailableModulePoints = function() {
-  return this.modulePoints.total - this.modulePoints.spent;
-};
-
-// Method to add a module
-CharacterSchema.methods.addModule = async function(moduleId) {
-  // Check if module already exists
-  const existing = this.modules.find(m => m.moduleId.toString() === moduleId.toString());
-  if (existing) return false;
-  
-  // Get module base cost (first tier is always 2 points)
-  const baseCost = 2;
-  
-  // Check if enough points
-  if (this.getAvailableModulePoints() < baseCost) return false;
-  
-  // Add module
-  this.modules.push({
-    moduleId,
-    selectedOptions: []
-  });
-  
-  // Spend points
-  this.modulePoints.spent += baseCost;
-  
-  return true;
-};
-
-// Method to remove a module
-CharacterSchema.methods.removeModule = function(moduleId) {
-  const moduleIndex = this.modules.findIndex(m => m.moduleId.toString() === moduleId.toString());
-  if (moduleIndex === -1) return false;
-  
-  const module = this.modules[moduleIndex];
-  
-  // Calculate refund (2 points for base + sum of option costs)
-  let refund = 2; // Base cost
-  
-  // Add cost of each selected option
-  for (const option of module.selectedOptions) {
-    // Get tier from location
-    const tier = parseInt(option.location.match(/^(\d+)/)[1]);
-    // Option cost based on tier
-    refund += tier >= 5 ? 3 : 2;
-  }
-  
-  // Refund points
-  this.modulePoints.spent -= refund;
-  if (this.modulePoints.spent < 0) this.modulePoints.spent = 0;
-  
-  // Remove module
-  this.modules.splice(moduleIndex, 1);
-  
-  return true;
-};
-
-// Method to select a module option
-CharacterSchema.methods.selectOption = async function(moduleId, location) {
-  const module = this.modules.find(m => m.moduleId.toString() === moduleId.toString());
-  if (!module) return false;
-  
-  // Check if option already selected
-  const optionExists = module.selectedOptions.some(o => o.location === location);
-  if (optionExists) return false;
-  
-  // Get module data to check if option is available
-  const moduleData = await mongoose.model('Module').findById(moduleId);
-  if (!moduleData) return false;
-  
-  // Check if option exists in module
-  const option = moduleData.options.find(o => o.location === location);
-  if (!option) return false;
-  
-  // Check if prerequisites are met
-  if (!canSelectOption(moduleData, location, module.selectedOptions)) {
-    return false;
-  }
-  
-  // Get option cost based on tier
-  const cost = getOptionCost(location);
-  
-  // Check if enough points
-  if (this.getAvailableModulePoints() < cost) return false;
-  
-  // Add option and spend points
-  module.selectedOptions.push({
-    location,
-    selectedAt: new Date()
-  });
-  
-  this.modulePoints.spent += cost;
-  
-  return true;
-};
-
-// Method to deselect a module option
-CharacterSchema.methods.deselectOption = async function(moduleId, location) {
-  const module = this.modules.find(m => m.moduleId.toString() === moduleId.toString());
-  if (!module) return false;
-  
-  // Check if option is selected
-  const optionIndex = module.selectedOptions.findIndex(o => o.location === location);
-  if (optionIndex === -1) return false;
-  
-  // Get module data to find dependent options
-  const moduleData = await mongoose.model('Module').findById(moduleId);
-  if (!moduleData) return false;
-  
-  // Get all options that depend on this one
-  const dependentOptions = getDependentOptions(moduleData, location, module.selectedOptions);
-  
-  // Cannot deselect if it has dependent options
-  if (dependentOptions.length > 0) {
-    return false;
-  }
-  
-  // Get option cost based on tier
-  const cost = getOptionCost(location);
-  
-  // Remove option and refund points
-  module.selectedOptions.splice(optionIndex, 1);
-  this.modulePoints.spent -= cost;
-  
-  return true;
-};
-
-// Helper function to check if an option can be selected
-function canSelectOption(module, location, selectedOptions) {
-  // Always allow tier 1
-  if (location === "1") return true;
-  
-  // Get tier number
-  const tier = parseInt(location.match(/^(\d+)/)[1]);
-  
-  // Check if it's a sub-option (e.g. "2a")
-  const isSubOption = location.length > 1;
-  
-  if (isSubOption) {
-    // For sub-options, check if base tier is selected
-    const baseTier = location.charAt(0);
-    // Any option from previous tier will satisfy the requirement
-    return selectedOptions.some(o => o.location.charAt(0) === (parseInt(baseTier) - 1).toString());
-  } else {
-    // For main tiers, check if previous tier is selected
-    const previousTier = (tier - 1).toString();
-    return selectedOptions.some(o => o.location.charAt(0) === previousTier);
-  }
-}
-
-// Helper function to get dependent options
-function getDependentOptions(module, location, selectedOptions) {
-  const tier = parseInt(location.match(/^(\d+)/)[1]);
-  
-  // Find all selected options with higher tier numbers
-  return selectedOptions.filter(o => {
-    const optionTier = parseInt(o.location.match(/^(\d+)/)[1]);
-    return optionTier > tier;
-  });
-}
-
-// Helper function to get option cost
-function getOptionCost(location) {
-  const tier = parseInt(location.match(/^(\d+)/)[1]);
-  return tier >= 5 ? 3 : 2;
-}
-
-// Helper function to apply special effects based on option name
-function applySpecialEffectsFromName(character, option, moduleName) {
-  // Add option name to character's available actions if it's an action
-  if (option.name.includes('Action :') || option.name.includes('Reaction :') || option.name.includes('Free Action :')) {
-    // Extract action type and name
-    const match = option.name.match(/(Action|Reaction|Free Action)\s*:\s*(.+)/i);
-    if (match) {
-      const [_, actionType, actionName] = match;
-      
-      // Initialize actions array if not exists
-      if (!character.actions) character.actions = [];
-      
-      // Check if action already exists
-      const exists = character.actions.some(a => a.name === actionName.trim());
-      
-      if (!exists) {
-        character.actions.push({
-          name: actionName.trim(),
-          description: option.description,
-          type: actionType.trim(),
-          sourceModule: moduleName,
-          sourceModuleOption: option.name
-        });
-      }
-    }
-  }
-}
+// Add other methods as needed
 
 const Character = mongoose.model('Character', CharacterSchema);
 

@@ -2,44 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
+import TalentDisplay from '../components/character/TalentDisplay';
+import SkillCard from '../components/character/SkillCard';
+import AttributeSkillsSection from '../components/character/AttributeSkillsSection';
+import SpecializedSkillsSection from '../components/character/SpecializedSkillsSection';
 
-// Skill names mapping
-const SKILL_NAMES = {
-  fitness: 'Fitness',
-  deflect: 'Deflect',
-  might: 'Might',
-  evade: 'Evade',
-  stealth: 'Stealth',
-  coordination: 'Coordination',
-  resilience: 'Resilience',
-  concentration: 'Concentration',
-  senses: 'Senses',
-  science: 'Science',
-  technology: 'Technology',
-  medicine: 'Medicine',
-  negotiation: 'Negotiation',
-  behavior: 'Behavior',
-  presence: 'Presence'
-};
-
-// Crafting skill names
-const CRAFTING_SKILL_NAMES = {
-  engineering: 'Engineering',
-  fabrication: 'Fabrication',
-  biosculpting: 'Biosculpting',
-  synthesist: 'Synthesist'
-};
-
-// Attribute groupings for skills
-const ATTRIBUTE_GROUPS = {
-  physique: ['fitness', 'deflect', 'might'],
-  agility: ['evade', 'stealth', 'coordination'],
-  mind: ['resilience', 'concentration', 'senses'],
-  knowledge: ['science', 'technology', 'medicine'],
-  social: ['negotiation', 'behavior', 'presence']
-};
-
-// Define Character type
+// Define Character type with the new talent-based system
 interface Action {
   name: string;
   description: string;
@@ -67,6 +35,21 @@ interface Module {
   options: ModuleOption[];
 }
 
+interface SkillData {
+  value: number; // Dice type (1-6)
+  talent: number; // Number of dice (0-3)
+}
+
+interface WeaponSkillData {
+  value: number; // Dice type (1-6)
+  talent: number; // Number of dice (0-3)
+}
+
+interface CraftingSkillData {
+  value: number; // Dice type (1-6)
+  talent: number; // Number of dice (0-3)
+}
+
 interface Character {
   _id: string;
   userId: string;
@@ -79,8 +62,36 @@ interface Character {
     knowledge: number;
     social: number;
   };
-  skills: Record<string, { value: number; isGoodAt: boolean }>;
-  craftingSkills: Record<string, { value: number; isGoodAt: boolean }>;
+  skills: {
+    fitness: SkillData;
+    deflect: SkillData;
+    might: SkillData;
+    evade: SkillData;
+    stealth: SkillData;
+    coordination: SkillData;
+    resilience: SkillData;
+    concentration: SkillData;
+    senses: SkillData;
+    science: SkillData;
+    technology: SkillData;
+    medicine: SkillData;
+    xenology: SkillData;
+    negotiation: SkillData;
+    behavior: SkillData;
+    presence: SkillData;
+  };
+  weaponSkills: {
+    rangedWeapons: WeaponSkillData;
+    meleeWeapons: WeaponSkillData;
+    weaponSystems: WeaponSkillData;
+    heavyRangedWeapons: WeaponSkillData;
+  };
+  craftingSkills: {
+    engineering: CraftingSkillData;
+    fabrication: CraftingSkillData;
+    biosculpting: CraftingSkillData;
+    synthesis: CraftingSkillData;
+  };
   resources: {
     health: { current: number; max: number };
     stamina: { current: number; max: number };
@@ -97,7 +108,7 @@ interface Character {
   biography: string;
   appearance: string;
   actions: Action[];
-  modules: Module[];
+  modules: any[]; // Simplified for this example
   level: number;
   experience: number;
   calculatedStats: {
@@ -127,55 +138,62 @@ const CharacterView: React.FC = () => {
         // In a real app, this would call your API
         // const response = await fetch(`/api/characters/${id}`);
         
-        // Mock data for development
+        // Mock data for development with the new talent-based system
         const mockCharacter: Character = {
           _id: id || '12345',
           userId: 'test-user-id',
           name: 'Zara Chen',
           race: 'Human',
           attributes: {
-            physique: 3,
-            agility: 4,
-            mind: 3,
-            knowledge: 2,
-            social: 3
+            physique: 2,
+            agility: 3,
+            mind: 2,
+            knowledge: 1,
+            social: 2
           },
           skills: {
             // Physique Skills
-            fitness: { value: 3, isGoodAt: true },
-            deflect: { value: 3, isGoodAt: false },
-            might: { value: 3, isGoodAt: false },
+            fitness: { value: 2, talent: 0 },
+            deflect: { value: 3, talent: 0 },
+            might: { value: 2, talent: 0 },
             
             // Agility Skills
-            evade: { value: 4, isGoodAt: true },
-            stealth: { value: 4, isGoodAt: false },
-            coordination: { value: 4, isGoodAt: true },
+            evade: { value: 3, talent: 0 },
+            stealth: { value: 4, talent: 0 },
+            coordination: { value: 3, talent: 0 },
             
             // Mind Skills
-            resilience: { value: 3, isGoodAt: false },
-            concentration: { value: 3, isGoodAt: false },
-            senses: { value: 3, isGoodAt: false },
+            resilience: { value: 2, talent: 0 },
+            concentration: { value: 3, talent: 0 },
+            senses: { value: 4, talent: 0 },
             
             // Knowledge Skills
-            science: { value: 2, isGoodAt: false },
-            technology: { value: 2, isGoodAt: false },
-            medicine: { value: 2, isGoodAt: false },
+            science: { value: 2, talent: 0 },
+            technology: { value: 1, talent: 0 },
+            medicine: { value: 3, talent: 0 },
+            xenology: { value: 2, talent: 0 },
             
             // Social Skills
-            negotiation: { value: 3, isGoodAt: false },
-            behavior: { value: 3, isGoodAt: false },
-            presence: { value: 3, isGoodAt: false }
+            negotiation: { value: 2, talent: 0 },
+            behavior: { value: 3, talent: 0 },
+            presence: { value: 2, talent: 0 }
+          },
+          weaponSkills: {
+            rangedWeapons: { value: 3, talent: 2 },
+            meleeWeapons: { value: 2, talent: 1 },
+            weaponSystems: { value: 1, talent: 0 },
+            heavyRangedWeapons: { value: 2, talent: 0 }
           },
           craftingSkills: {
-            engineering: { value: 1, isGoodAt: false },
-            fabrication: { value: 2, isGoodAt: false },
-            biosculpting: { value: 0, isGoodAt: false },
-            synthesist: { value: 0, isGoodAt: false }
+            engineering: { value: 1, talent: 1 },
+            fabrication: { value: 2, talent: 1 },
+            biosculpting: { value: 1, talent: 0 },
+            synthesis: { value: 2, talent: 0 }
           },
           resources: {
-            health: { current: 16, max: 16 },
-            stamina: { current: 16, max: 16 },
-            resolve: { current: 16, max: 16 }
+            health: { current: 12, max: 12 },
+            stamina: { current: 7, max: 7 },
+            resolve: { current: 7, max: 7 }
           },
           languages: ['Common', 'Terran Standard'],
           stances: ['Defensive Stance'],
@@ -203,52 +221,13 @@ const CharacterView: React.FC = () => {
               sourceModuleOption: "Rolling Dodge"
             }
           ],
-          modules: [
-            {
-              id: 250,
-              name: "Acrobat",
-              mtype: "secondary",
-              ruleset: 0,
-              options: [
-                {
-                  id: 1547,
-                  name: "Acrobat",
-                  description: "Gain +1 Acrobatics and +1 Initiative.",
-                  mtype: "sub",
-                  location: "1",
-                  cost: 2,
-                  data: "AS3=1:ASH=1",
-                  selected: true
-                },
-                {
-                  id: 1550,
-                  name: "Reaction : Rolling Dodge",
-                  description: "Gain +1 Dodge until the start of your next turn. Each time you Dodge an Attack successfully, gain another +1 Dodge until the start of your next turn",
-                  mtype: "sub",
-                  location: "3",
-                  cost: 2,
-                  data: "ZX2",
-                  selected: true
-                },
-                {
-                  id: 1552,
-                  name: "Quick Dodge",
-                  description: "You can use your Dodge Modifier to Defend against Ray Attacks",
-                  mtype: "sub",
-                  location: "4b",
-                  cost: 2,
-                  data: "TD",
-                  selected: true
-                }
-              ]
-            }
-          ],
+          modules: [],
           level: 3,
           experience: 1250,
           calculatedStats: {
-            initiative: 7,
+            initiative: 5,
             movement: 5,
-            dodge: 4
+            dodge: 3
           },
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -311,25 +290,6 @@ const CharacterView: React.FC = () => {
         }} />
       </div>
     );
-  };
-
-  // Group skills by attribute
-  const getSkillsByAttribute = () => {
-    const grouped: Record<string, { name: string; skills: { id: string; name: string; value: number; isGoodAt: boolean }[] }> = {};
-
-    Object.entries(ATTRIBUTE_GROUPS).forEach(([attributeName, skillIds]) => {
-      grouped[attributeName] = {
-        name: attributeName.charAt(0).toUpperCase() + attributeName.slice(1),
-        skills: skillIds.map(skillId => ({
-          id: skillId,
-          name: SKILL_NAMES[skillId as keyof typeof SKILL_NAMES],
-          value: character?.skills[skillId]?.value || 0,
-          isGoodAt: character?.skills[skillId]?.isGoodAt || false
-        }))
-      };
-    });
-
-    return grouped;
   };
 
   if (loading) {
@@ -396,8 +356,6 @@ const CharacterView: React.FC = () => {
       </div>
     );
   }
-
-  const skillsByAttribute = getSkillsByAttribute();
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -662,11 +620,14 @@ const CharacterView: React.FC = () => {
                           <span style={{ color: 'var(--color-cloud)' }}>
                             {key.charAt(0).toUpperCase() + key.slice(1)}
                           </span>
-                          <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                            {value}
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                              {value}
+                            </span>
+                            <TalentDisplay talent={value} maxTalent={3} size="sm" />
+                          </div>
                         </div>
-                        {renderStatBar(value, 5)}
+                        {renderStatBar(value, 3)}
                       </div>
                     ))}
                   </div>
@@ -685,16 +646,6 @@ const CharacterView: React.FC = () => {
                 </CardHeader>
                 <CardBody>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div>
-                      <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Level</div>
-                      <div style={{ color: 'var(--color-white)' }}>{character.level}</div>
-                    </div>
-                    
-                    <div>
-                      <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Experience</div>
-                      <div style={{ color: 'var(--color-white)' }}>{character.experience} XP</div>
-                    </div>
-                    
                     <div>
                       <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Initiative</div>
                       <div style={{ color: 'var(--color-white)' }}>{character.calculatedStats.initiative}</div>
@@ -727,45 +678,42 @@ const CharacterView: React.FC = () => {
                     fontSize: '1.25rem',
                     fontWeight: 'bold'
                   }}>
-                    Crafting Skills
+                    Dice & Talent System
                   </h2>
                 </CardHeader>
                 <CardBody>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                    {Object.entries(character.craftingSkills).map(([key, { value, isGoodAt }]) => (
-                      <div key={key}>
-                        <div style={{ 
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: '0.25rem'
-                        }}>
-                          <span style={{ 
-                            color: 'var(--color-cloud)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                          }}>
-                            {CRAFTING_SKILL_NAMES[key as keyof typeof CRAFTING_SKILL_NAMES]}
-                            {isGoodAt && (
-                              <span style={{
-                                backgroundColor: 'var(--color-metal-gold)',
-                                color: 'var(--color-dark-surface)',
-                                fontSize: '0.6875rem',
-                                padding: '0.125rem 0.375rem',
-                                borderRadius: '9999px',
-                                fontWeight: 'bold'
-                              }}>
-                                Good At
-                              </span>
-                            )}
-                          </span>
-                          <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                            {value}
-                          </span>
-                        </div>
-                        {renderStatBar(value, 3)}
-                      </div>
-                    ))}
+                  <p style={{ 
+                    color: 'var(--color-cloud)', 
+                    marginBottom: '1rem',
+                    fontSize: '0.875rem'
+                  }}>
+                    For skill checks, you roll a number of dice determined by your Talent stars. For attribute skills, you roll a number of dice equal to your attribute value. For specialized skills like Weapon and Crafting skills, you roll dice based on the talent value assigned to that skill.
+                  </p>
+                  
+                  <div style={{ 
+                    backgroundColor: 'var(--color-dark-elevated)',
+                    padding: '1rem',
+                    borderRadius: '0.5rem',
+                    marginBottom: '1rem'
+                  }}>
+                    <div style={{ 
+                      color: 'var(--color-white)',
+                      fontWeight: 'bold',
+                      marginBottom: '0.5rem'
+                    }}>
+                      Examples:
+                    </div>
+                    <ul style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', paddingLeft: '1.5rem' }}>
+                      <li style={{ marginBottom: '0.5rem' }}>
+                        A character with Physique 2 and Fitness skill (1d6) would roll 2d6 for Fitness checks.
+                      </li>
+                      <li style={{ marginBottom: '0.5rem' }}>
+                        A character with Ranged Weapons skill (1d8) and 3 talent stars would roll 3d8 for Ranged Weapon attacks.
+                      </li>
+                      <li>
+                        A character with Knowledge 1 and Science skill (1d10) would roll 1d10 for Science checks.
+                      </li>
+                    </ul>
                   </div>
                 </CardBody>
               </Card>
@@ -775,213 +723,255 @@ const CharacterView: React.FC = () => {
           {/* Attributes & Skills Tab */}
           {activeTab === 'skills' && (
             <div>
-              {Object.entries(skillsByAttribute).map(([attributeKey, { name, skills }]) => (
-                <Card variant="default" key={attributeKey} style={{ marginBottom: '1.5rem' }}>
-                  <CardHeader>
-                    <h2 style={{ 
-                      color: 'var(--color-white)',
-                      fontSize: '1.25rem',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      {name}
-                      <span style={{ 
-                        color: 'var(--color-metal-gold)',
-                        fontSize: '1rem'
-                      }}>
-                        ({character.attributes[attributeKey as keyof typeof character.attributes]})
-                      </span>
-                    </h2>
-                  </CardHeader>
-                  <CardBody>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {skills.map(skill => (
-                        <div key={skill.id}>
-                          <div style={{ 
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            marginBottom: '0.25rem'
-                          }}>
-                            <span style={{ 
-                              color: 'var(--color-cloud)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem'
-                            }}>
-                              {skill.name}
-                              {skill.isGoodAt && (
-                                <span style={{
-                                  backgroundColor: 'var(--color-metal-gold)',
-                                  color: 'var(--color-dark-surface)',
-                                  fontSize: '0.6875rem',
-                                  padding: '0.125rem 0.375rem',
-                                  borderRadius: '9999px',
-                                  fontWeight: 'bold'
-                                }}>
-                                  Good At
-                                </span>
-                              )}
-                            </span>
-                            <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                              {skill.value}
-                            </span>
-                          </div>
-                          {renderStatBar(skill.value, 5)}
-                        </div>
-                      ))}
-                    </div>
-                  </CardBody>
-                </Card>
-              ))}
+              <div style={{
+                padding: '1rem',
+                backgroundColor: 'var(--color-dark-elevated)',
+                borderRadius: '0.5rem',
+                marginBottom: '1.5rem'
+              }}>
+                <h3 style={{ 
+                  color: 'var(--color-white)', 
+                  fontSize: '1.125rem', 
+                  fontWeight: 'bold',
+                  marginBottom: '0.5rem'
+                }}>
+                  Talent System
+                </h3>
+                <p style={{ color: 'var(--color-cloud)', fontSize: '0.875rem' }}>
+                  For each skill check, you roll dice equal to your <strong>talent stars</strong> of the skill's dice type. 
+                  Attribute skills use your attribute value as talent stars, while specialized skills have their own talent values.
+                </p>
+              </div>
+              
+              {/* Attribute Skill Sections */}
+              <AttributeSkillsSection
+                attributeName="Physique"
+                attributeValue={character.attributes.physique}
+                skills={[
+                  { id: 'fitness', name: 'Fitness', value: character.skills.fitness.value, talent: character.skills.fitness.talent },
+                  { id: 'deflect', name: 'Deflect', value: character.skills.deflect.value, talent: character.skills.deflect.talent },
+                  { id: 'might', name: 'Might', value: character.skills.might.value, talent: character.skills.might.talent }
+                ]}
+              />
+              
+              <AttributeSkillsSection
+                attributeName="Agility"
+                attributeValue={character.attributes.agility}
+                skills={[
+                  { id: 'evade', name: 'Evade', value: character.skills.evade.value, talent: character.skills.evade.talent },
+                  { id: 'stealth', name: 'Stealth', value: character.skills.stealth.value, talent: character.skills.stealth.talent },
+                  { id: 'coordination', name: 'Coordination', value: character.skills.coordination.value, talent: character.skills.coordination.talent }
+                ]}
+              />
+              
+              <AttributeSkillsSection
+                attributeName="Mind"
+                attributeValue={character.attributes.mind}
+                skills={[
+                  { id: 'resilience', name: 'Resilience', value: character.skills.resilience.value, talent: character.skills.resilience.talent },
+                  { id: 'concentration', name: 'Concentration', value: character.skills.concentration.value, talent: character.skills.concentration.talent },
+                  { id: 'senses', name: 'Senses', value: character.skills.senses.value, talent: character.skills.senses.talent }
+                ]}
+              />
+              
+              <AttributeSkillsSection
+                attributeName="Knowledge"
+                attributeValue={character.attributes.knowledge}
+                skills={[
+                  { id: 'science', name: 'Science', value: character.skills.science.value, talent: character.skills.science.talent },
+                  { id: 'technology', name: 'Technology', value: character.skills.technology.value, talent: character.skills.technology.talent },
+                  { id: 'medicine', name: 'Medicine', value: character.skills.medicine.value, talent: character.skills.medicine.talent },
+                  { id: 'xenology', name: 'Xenology', value: character.skills.xenology.value, talent: character.skills.xenology.talent }
+                ]}
+              />
+              
+              <AttributeSkillsSection
+                attributeName="Social"
+                attributeValue={character.attributes.social}
+                skills={[
+                  { id: 'negotiation', name: 'Negotiation', value: character.skills.negotiation.value, talent: character.skills.negotiation.talent },
+                  { id: 'behavior', name: 'Behavior', value: character.skills.behavior.value, talent: character.skills.behavior.talent },
+                  { id: 'presence', name: 'Presence', value: character.skills.presence.value, talent: character.skills.presence.talent }
+                ]}
+              />
+              
+              {/* Specialized Skills Section */}
+              <SpecializedSkillsSection
+                title="Weapon Skills"
+                description="Weapon skills have their own talent values that determine how many dice you roll for attacks."
+                skills={[
+                  { 
+                    id: 'rangedWeapons', 
+                    name: 'Ranged Weapons', 
+                    value: character.weaponSkills.rangedWeapons.value, 
+                    talent: character.weaponSkills.rangedWeapons.talent 
+                  },
+                  { 
+                    id: 'meleeWeapons', 
+                    name: 'Melee Weapons', 
+                    value: character.weaponSkills.meleeWeapons.value, 
+                    talent: character.weaponSkills.meleeWeapons.talent 
+                  },
+                  { 
+                    id: 'weaponSystems', 
+                    name: 'Weapon Systems', 
+                    value: character.weaponSkills.weaponSystems.value, 
+                    talent: character.weaponSkills.weaponSystems.talent 
+                  },
+                  { 
+                    id: 'heavyRangedWeapons', 
+                    name: 'Heavy Ranged Weapons', 
+                    value: character.weaponSkills.heavyRangedWeapons.value, 
+                    talent: character.weaponSkills.heavyRangedWeapons.talent 
+                  }
+                ]}
+              />
+              
+              <SpecializedSkillsSection
+                title="Crafting Skills"
+                description="Crafting skills are used to create and modify equipment and items."
+                skills={[
+                  { 
+                    id: 'engineering', 
+                    name: 'Engineering', 
+                    value: character.craftingSkills.engineering.value, 
+                    talent: character.craftingSkills.engineering.talent 
+                  },
+                  { 
+                    id: 'fabrication', 
+                    name: 'Fabrication', 
+                    value: character.craftingSkills.fabrication.value, 
+                    talent: character.craftingSkills.fabrication.talent 
+                  },
+                  { 
+                    id: 'biosculpting', 
+                    name: 'Biosculpting', 
+                    value: character.craftingSkills.biosculpting.value, 
+                    talent: character.craftingSkills.biosculpting.talent 
+                  },
+                  { 
+                    id: 'synthesis', 
+                    name: 'Synthesis', 
+                    value: character.craftingSkills.synthesis.value, 
+                    talent: character.craftingSkills.synthesis.talent 
+                  }
+                ]}
+              />
+              
+              <Card variant="default">
+                <CardHeader>
+                  <h2 style={{ 
+                    color: 'var(--color-white)',
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold'
+                  }}>
+                    Dice System Reference
+                  </h2>
+                </CardHeader>
+                <CardBody>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ 
+                          textAlign: 'left', 
+                          padding: '0.5rem', 
+                          color: 'var(--color-cloud)', 
+                          borderBottom: '1px solid var(--color-dark-border)' 
+                        }}>
+                          Dice Value
+                        </th>
+                        <th style={{ 
+                          textAlign: 'left', 
+                          padding: '0.5rem', 
+                          color: 'var(--color-cloud)', 
+                          borderBottom: '1px solid var(--color-dark-border)' 
+                        }}>
+                          Die Type
+                        </th>
+                        <th style={{ 
+                          textAlign: 'left', 
+                          padding: '0.5rem', 
+                          color: 'var(--color-cloud)', 
+                          borderBottom: '1px solid var(--color-dark-border)' 
+                        }}>
+                          Talent Stars
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>1</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>1d4</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>Number of dice to roll</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>2</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>1d6</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>Based on attribute or talent stars</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>3</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>1d8</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>Maximum of 3 stars</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>4</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>1d10</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}></td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>5</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}>1d12</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)', borderBottom: '1px solid var(--color-dark-border)' }}></td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)' }}>6</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)' }}>1d20</td>
+                        <td style={{ padding: '0.5rem', color: 'var(--color-white)' }}></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </CardBody>
+              </Card>
             </div>
           )}
           
           {/* Modules Tab */}
           {activeTab === 'modules' && (
-  <div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-      <h2 style={{ 
-        color: 'var(--color-white)',
-        fontSize: '1.5rem',
-        fontWeight: 'bold'
-      }}>
-        Character Modules
-      </h2>
-      
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <div style={{
-          backgroundColor: 'var(--color-dark-elevated)',
-          padding: '0.5rem 1rem',
-          borderRadius: '0.5rem',
-          color: 'var(--color-metal-gold)'
-        }}>
-          Module Points: <span style={{ fontWeight: 'bold' }}>
-            {character.modulePoints.total - character.modulePoints.spent}
-          </span> / {character.modulePoints.total}
-        </div>
-        
-        <Link to={`/characters/${character._id}/modules`}>
-          <Button variant="accent" size="sm">
-            Manage Modules
-          </Button>
-        </Link>
-      </div>
-    </div>
-    
-    {character.modules && character.modules.length > 0 ? (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {character.modules.map((module) => (
-          <Card key={module.moduleId._id} variant="default">
-            <CardHeader>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ 
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ 
                   color: 'var(--color-white)',
-                  fontSize: '1.25rem',
+                  fontSize: '1.5rem',
                   fontWeight: 'bold'
                 }}>
-                  {module.moduleId.name}
-                </h3>
-                <div style={{ 
-                  color: 'var(--color-cloud)',
-                  fontSize: '0.875rem',
-                  textTransform: 'capitalize'
-                }}>
-                  {module.moduleId.mtype}
-                </div>
-              </div>
-            </CardHeader>
-            <CardBody>
-              <div style={{ marginBottom: '1rem' }}>
-                <h4 style={{ 
-                  color: 'var(--color-metal-gold)',
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  marginBottom: '0.5rem'
-                }}>
-                  Selected Options:
-                </h4>
+                  Character Modules
+                </h2>
                 
-                {module.selectedOptions.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {module.selectedOptions.map((selectedOption) => {
-                      // Find the option details
-                      const option = module.moduleId.options.find(o => o.location === selectedOption.location);
-                      
-                      return option ? (
-                        <div 
-                          key={selectedOption.location}
-                          style={{
-                            padding: '0.75rem 1rem',
-                            backgroundColor: 'var(--color-dark-elevated)',
-                            borderRadius: '0.375rem',
-                            border: '1px solid var(--color-dark-border)'
-                          }}
-                        >
-                          <div style={{ 
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            marginBottom: '0.25rem'
-                          }}>
-                            <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                              {option.name}
-                            </span>
-                            <span style={{ 
-                              color: 'var(--color-cloud)',
-                              fontSize: '0.75rem'
-                            }}>
-                              Tier {selectedOption.location.charAt(0)}
-                            </span>
-                          </div>
-                          
-                          <p style={{ 
-                            color: 'var(--color-cloud)',
-                            fontSize: '0.875rem'
-                          }}>
-                            {option.description}
-                          </p>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                ) : (
-                  <p style={{ color: 'var(--color-cloud)' }}>
-                    No options selected yet. Visit the Modules page to select options.
-                  </p>
-                )}
-              </div>
-              
-              <div style={{ textAlign: 'right' }}>
                 <Link to={`/characters/${character._id}/modules`}>
-                  <Button variant="secondary" size="sm">
-                    Manage Module
+                  <Button variant="accent" size="sm">
+                    Manage Modules
                   </Button>
                 </Link>
               </div>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
-    ) : (
-      <div style={{
-        backgroundColor: 'var(--color-dark-surface)',
-        padding: '2rem',
-        borderRadius: '0.5rem',
-        textAlign: 'center'
-      }}>
-        <p style={{ color: 'var(--color-cloud)', marginBottom: '1rem' }}>
-          No modules added to this character yet.
-        </p>
-        <Link to={`/characters/${character._id}/modules`}>
-          <Button variant="accent">
-            Add Modules
-          </Button>
-        </Link>
-      </div>
-    )}
-  </div>
-)}
+              
+              <div style={{
+                backgroundColor: 'var(--color-dark-surface)',
+                padding: '2rem',
+                borderRadius: '0.5rem',
+                textAlign: 'center'
+              }}>
+                <p style={{ color: 'var(--color-cloud)', marginBottom: '1rem' }}>
+                  No modules added to this character yet.
+                </p>
+                <Link to={`/characters/${character._id}/modules`}>
+                  <Button variant="accent">
+                    Add Modules
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
           
           {/* Actions Tab */}
           {activeTab === 'actions' && (
