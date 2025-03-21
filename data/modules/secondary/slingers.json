@@ -1,0 +1,66 @@
+{
+  "name": "Slinger",
+  "ruleset": 0,
+  "options": [
+    {
+      "name": "Slinger",
+      "description": "Gain +1 Attack with Ultra-Light Ranged Weapons. You can dual wield Ultra-Light Ranged Weapons.",
+      "location": "1",
+      "data": "AZ3=1:B"
+    },
+    {
+      "name": "Quick Draw",
+      "description": "You can draw or holster an Ultra-Light Ranged Weapon as part of another action.",
+      "location": "2a",
+      "data": "TG"
+    },
+    {
+      "name": "Dual Reload",
+      "description": "When you use an Action to Reload, you can reload two Ultra-Light Ranged Weapons instead of one.",
+      "location": "2b",
+      "data": "TG"
+    },
+    {
+      "name": "Improved Accuracy",
+      "description": "Gain +1 Attack with Ultra-Light Ranged Weapons.",
+      "location": "3",
+      "data": "AZ3=1"
+    },
+    {
+      "name": "Reaction : Return Fire",
+      "description": "When a creature within your Ranged Weapon's range makes a ranged attack against you, you can make an attack with an Ultra-Light Ranged Weapon against that creature.",
+      "location": "4a",
+      "data": "ZX2"
+    },
+    {
+      "name": "Action : Spray and Pray",
+      "description": "Make an attack with an Ultra-Light Ranged Weapon against all enemies in a 45-degree cone. Each attack has a 1d4 penalty.",
+      "location": "4b",
+      "data": "XX3"
+    },
+    {
+      "name": "Double Shot",
+      "description": "When you make an attack with an Ultra-Light Ranged Weapon, you can make a second attack against the same target with a 1d4 penalty.",
+      "location": "5",
+      "data": "TO"
+    },
+    {
+      "name": "Free Action : Quick Swap",
+      "description": "As a free action, you can switch your grip between your primary and secondary Ultra-Light Ranged Weapons.",
+      "location": "6a",
+      "data": "Y"
+    },
+    {
+      "name": "Critical Mastery",
+      "description": "Gain +1 to Critical Hit chance with Ultra-Light Ranged Weapons. Your Critical Hits with Ultra-Light Ranged Weapons deal +1d4 damage.",
+      "location": "6b",
+      "data": "AZF=1"
+    },
+    {
+      "name": "Master Slinger",
+      "description": "Your dual wielding penalty with Ultra-Light Ranged Weapons is removed. Additionally, gain +1 damage with Ultra-Light Ranged Weapons.",
+      "location": "7",
+      "data": "AZ9=1:B1"
+    }
+  ]
+}

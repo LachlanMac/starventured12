@@ -1,0 +1,66 @@
+{
+  "name": "Hacker",
+  "ruleset": 0,
+  "options": [
+    {
+      "name": "Hacker",
+      "description": "Gain +1 Technology and +1 Concentration. You have advantage on checks to access or manipulate electronic systems.",
+      "location": "1",
+      "data": "ASB=1:AS8=1:TD"
+    },
+    {
+      "name": "Code Breaker",
+      "description": "Gain +1 Technology. You can break electronic encryption in half the normal time.",
+      "location": "2a",
+      "data": "ASB=1:TD"
+    },
+    {
+      "name": "System Backdoor",
+      "description": "After successfully hacking a system, you can create a hidden access point that allows you to re-enter the system without making a check.",
+      "location": "2b",
+      "data": "TD"
+    },
+    {
+      "name": "Data Analysis",
+      "description": "Gain +1 Technology and +1 Science. You can quickly scan and interpret large volumes of data, identifying patterns and key information.",
+      "location": "3",
+      "data": "ASB=1:ASA=1:TD"
+    },
+    {
+      "name": "Action : System Override",
+      "description": "Take control of an electronic device or system for 1 minute. The difficulty depends on the complexity and security of the target system.",
+      "location": "4a",
+      "data": "XX3"
+    },
+    {
+      "name": "Reaction : Firewall",
+      "description": "When you or an ally is targeted by an electronic attack or detection system, you can attempt to block it with a Technology check.",
+      "location": "4b",
+      "data": "ZX2"
+    },
+    {
+      "name": "Bypass Security",
+      "description": "Gain +1 Technology and the ability to disable security systems without triggering alarms. You have advantage on checks to disable electronic security measures.",
+      "location": "5",
+      "data": "ASB=1:TD"
+    },
+    {
+      "name": "Action : Digital Sabotage",
+      "description": "Target an electronic system and make a Technology check. If successful, the system malfunctions in a way of your choosing for 1d4 minutes.",
+      "location": "6a",
+      "data": "XX3"
+    },
+    {
+      "name": "Free Action : Quick Hack",
+      "description": "You can attempt to hack simple electronic devices (like door locks or cameras) as a free action once per turn.",
+      "location": "6b",
+      "data": "Y"
+    },
+    {
+      "name": "Master Hacker",
+      "description": "Gain +1 Technology and +1 Concentration. You can hack any system given enough time, regardless of its security measures. Additionally, you can remotely access electronic systems from twice the normal range.",
+      "location": "7",
+      "data": "ASB=1:AS8=1:TD"
+    }
+  ]
+}

@@ -34,16 +34,16 @@ const Navbar: React.FC = () => {
 
           {/* Desktop navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            {isAuthenticated && (
             <NavLink to="/characters" isActive={isActive('/characters')}>
               Characters
             </NavLink>
-             )}
-            {isAuthenticated && (
             <NavLink to="/campaigns" isActive={isActive('/campaigns')}>
               Campaigns
             </NavLink>
-            )}
+            <NavLink to="/modules" isActive={isActive('/modules')}>
+              Modules
+            </NavLink>
+            
             {/* Auth buttons */}
             {loading ? (
               <div className="h-8 w-8 rounded-full bg-space-blue animate-pulse"></div>
@@ -204,15 +204,19 @@ const Navbar: React.FC = () => {
               Characters
             </MobileNavLink>
             
+            <MobileNavLink to="/campaigns" isActive={isActive('/campaigns')} onClick={() => setIsOpen(false)}>
+              Campaigns
+            </MobileNavLink>
+            
+            <MobileNavLink to="/modules" isActive={isActive('/modules')} onClick={() => setIsOpen(false)}>
+              Modules
+            </MobileNavLink>
+            
             {isAuthenticated && (
               <MobileNavLink to="/characters/create" isActive={isActive('/characters/create')} onClick={() => setIsOpen(false)}>
                 Create Character
               </MobileNavLink>
             )}
-            
-            <MobileNavLink to="/campaigns" isActive={isActive('/campaigns')} onClick={() => setIsOpen(false)}>
-              Campaigns
-            </MobileNavLink>
             
             {isAuthenticated ? (
               <button

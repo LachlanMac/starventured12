@@ -1,0 +1,66 @@
+{
+  "name": "Corpsman",
+  "ruleset": 0,
+  "options": [
+    {
+      "name": "Corpsman",
+      "description": "Gain +1 Medicine and +1 Resilience. You can stabilize a dying creature as a bonus action.",
+      "location": "1",
+      "data": "ASC=1:AS7=1:TD"
+    },
+    {
+      "name": "Combat Medic",
+      "description": "Gain +1 Medicine. When you use a medical ability on an ally in combat, you don't provoke opportunity attacks.",
+      "location": "2a",
+      "data": "ASC=1:TD"
+    },
+    {
+      "name": "Triage Expert",
+      "description": "Gain +1 Resilience. You can quickly assess multiple casualties and prioritize treatment. You can stabilize up to three dying creatures as a single action.",
+      "location": "2b",
+      "data": "AS7=1:TD"
+    },
+    {
+      "name": "Battlefield Treatment",
+      "description": "Gain +1 Medicine and +1 Physical Mitigation. Your medical abilities can be used while under fire without penalty.",
+      "location": "3",
+      "data": "ASC=1:AD4=1:TD"
+    },
+    {
+      "name": "Action : Emergency Evac",
+      "description": "You can move a wounded ally up to half your movement speed without provoking opportunity attacks. The ally gains temporary hit points equal to your Medicine modifier until the end of your next turn.",
+      "location": "4a",
+      "data": "XX3"
+    },
+    {
+      "name": "Reaction : Trauma Response",
+      "description": "When an ally within 30 feet takes damage that would reduce them to 0 hit points, you can use your reaction to rush to them and keep them at 1 hit point instead.",
+      "location": "4b",
+      "data": "ZX2"
+    },
+    {
+      "name": "Advanced Field Medicine",
+      "description": "Gain +1 Medicine and +1 Resilience. You can cure one disease, poison effect, or condition when treating a wounded ally in addition to healing them.",
+      "location": "5",
+      "data": "ASC=1:AS7=1:TD"
+    },
+    {
+      "name": "Action : Mass Casualty Response",
+      "description": "You can treat up to three allies within 30 feet simultaneously. Each ally regains hit points equal to 2d6 + your Medicine modifier.",
+      "location": "6a",
+      "data": "XX3"
+    },
+    {
+      "name": "Medical Innovation",
+      "description": "Gain +1 Medicine and +1 Science. You can improvise medical supplies from available materials, never suffering penalties for lack of proper medical equipment.",
+      "location": "6b",
+      "data": "ASC=1:ASA=1:TD"
+    },
+    {
+      "name": "Master Corpsman",
+      "description": "Gain +1 Medicine and +1 Resilience. Your healing abilities restore an additional 2d8 hit points. Once per combat, you can revive a fallen ally as an action, returning them to half their maximum hit points.",
+      "location": "7",
+      "data": "ASC=1:AS7=1:TD"
+    }
+  ]
+}

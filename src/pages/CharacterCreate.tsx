@@ -5,38 +5,13 @@ import Card, { CardHeader, CardBody } from '../components/ui/Card';
 
 const RACES = ['Human', 'Android', 'Alien', 'Mutant'];
 
-// Attributes and Skills mapping
+// Attributes mapping
 const ATTRIBUTES = [
-  { id: 'physique', name: 'Physique', skills: ['fitness', 'deflect', 'might'] },
-  { id: 'agility', name: 'Agility', skills: ['evade', 'stealth', 'coordination'] },
-  { id: 'mind', name: 'Mind', skills: ['resilience', 'concentration', 'senses'] },
-  { id: 'knowledge', name: 'Knowledge', skills: ['science', 'technology', 'medicine'] },
-  { id: 'social', name: 'Social', skills: ['negotiation', 'behavior', 'presence'] }
-];
-
-const SKILL_NAMES = {
-  fitness: 'Fitness',
-  deflect: 'Deflect',
-  might: 'Might',
-  evade: 'Evade',
-  stealth: 'Stealth',
-  coordination: 'Coordination',
-  resilience: 'Resilience',
-  concentration: 'Concentration',
-  senses: 'Senses',
-  science: 'Science',
-  technology: 'Technology',
-  medicine: 'Medicine',
-  negotiation: 'Negotiation',
-  behavior: 'Behavior',
-  presence: 'Presence'
-};
-
-const CRAFTING_SKILLS = [
-  { id: 'engineering', name: 'Engineering' },
-  { id: 'fabrication', name: 'Fabrication' },
-  { id: 'biosculpting', name: 'Biosculpting' },
-  { id: 'synthesist', name: 'Synthesist' }
+  { id: 'physique', name: 'Physique', description: 'Physical strength, endurance, and overall body power.' },
+  { id: 'agility', name: 'Agility', description: 'Speed, reflexes, balance, and coordination.' },
+  { id: 'mind', name: 'Mind', description: 'Mental fortitude, focus, and perception.' },
+  { id: 'knowledge', name: 'Knowledge', description: 'Education, technical expertise, and wisdom.' },
+  { id: 'social', name: 'Social', description: 'Charisma, empathy, and ability to influence others.' }
 ];
 
 const CharacterCreate: React.FC = () => {
@@ -45,13 +20,15 @@ const CharacterCreate: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [pointsRemaining, setPointsRemaining] = useState<number>(7);
-  const [craftingPointsRemaining, setCraftingPointsRemaining] = useState<number>(3);
-  const [goodAtSkillsRemaining, setGoodAtSkillsRemaining] = useState<number>(3);
   
   // Character state
   const [character, setCharacter] = useState({
     name: '',
     race: '',
+    modulePoints: {
+      total: 10,
+      spent: 0
+    },
     attributes: {
       physique: 2,
       agility: 2,
@@ -59,44 +36,7 @@ const CharacterCreate: React.FC = () => {
       knowledge: 2,
       social: 2
     },
-    skills: {
-      // Physique Skills
-      fitness: { value: 2, isGoodAt: false },
-      deflect: { value: 2, isGoodAt: false },
-      might: { value: 2, isGoodAt: false },
-      
-      // Agility Skills
-      evade: { value: 2, isGoodAt: false },
-      stealth: { value: 2, isGoodAt: false },
-      coordination: { value: 2, isGoodAt: false },
-      
-      // Mind Skills
-      resilience: { value: 2, isGoodAt: false },
-      concentration: { value: 2, isGoodAt: false },
-      senses: { value: 2, isGoodAt: false },
-      
-      // Knowledge Skills
-      science: { value: 2, isGoodAt: false },
-      technology: { value: 2, isGoodAt: false },
-      medicine: { value: 2, isGoodAt: false },
-      
-      // Social Skills
-      negotiation: { value: 2, isGoodAt: false },
-      behavior: { value: 2, isGoodAt: false },
-      presence: { value: 2, isGoodAt: false }
-    },
-    craftingSkills: {
-      engineering: { value: 0, isGoodAt: false },
-      fabrication: { value: 0, isGoodAt: false },
-      biosculpting: { value: 0, isGoodAt: false },
-      synthesist: { value: 0, isGoodAt: false }
-    },
-    resources: {
-      health: { current: 14, max: 14 },
-      stamina: { current: 12, max: 12 },
-      resolve: { current: 14, max: 14 }
-    },
-    languages: ['Common'],
+    level: 1, // Will be calculated from modulePoints.total
     physicalTraits: {
       size: '',
       weight: '',
@@ -129,9 +69,21 @@ const CharacterCreate: React.FC = () => {
       };
     });
   };
-  
 
-  // Update an attribute and recalculate associated skills
+  // Update modulePoints and recalculate level
+  const updateModulePoints = (value: number) => {
+    const newLevel = Math.floor(value / 10);
+    setCharacter(prev => ({
+      ...prev,
+      modulePoints: {
+        ...prev.modulePoints,
+        total: value
+      },
+      level: newLevel > 0 ? newLevel : 1
+    }));
+  };
+
+  // Update an attribute
   const updateAttribute = (attribute: string, newValue: number) => {
     const oldValue = character.attributes[attribute as keyof typeof character.attributes];
     const pointDifference = oldValue - newValue;
@@ -147,108 +99,13 @@ const CharacterCreate: React.FC = () => {
       [attribute]: newValue
     };
     
-    // Update associated skills
-    const attributeObj = ATTRIBUTES.find(attr => attr.id === attribute);
-    const newSkills = { ...character.skills };
-    
-    if (attributeObj) {
-      attributeObj.skills.forEach(skillId => {
-        newSkills[skillId as keyof typeof newSkills] = {
-          ...newSkills[skillId as keyof typeof newSkills],
-          value: newValue
-        };
-      });
-    }
-    
-    // Calculate resources
-    const physique = attribute === 'physique' ? newValue : character.attributes.physique;
-    const mind = attribute === 'mind' ? newValue : character.attributes.mind;
-    
-    const newResources = {
-      health: { 
-        current: 10 + (physique * 2), 
-        max: 10 + (physique * 2) 
-      },
-      stamina: { 
-        current: 10 + (physique + mind), 
-        max: 10 + (physique + mind) 
-      },
-      resolve: { 
-        current: 10 + (mind * 2), 
-        max: 10 + (mind * 2) 
-      }
-    };
-    
     setCharacter(prev => ({
       ...prev,
-      attributes: newAttributes,
-      skills: newSkills,
-      resources: newResources
+      attributes: newAttributes
     }));
     
     setPointsRemaining(prev => prev + pointDifference);
   };
-
-  // Update crafting skill
-  const updateCraftingSkill = (skillId: string, newValue: number) => {
-    const oldValue = character.craftingSkills[skillId as keyof typeof character.craftingSkills].value;
-    const pointDifference = oldValue - newValue;
-    
-    if (craftingPointsRemaining + pointDifference < 0) {
-      // Not enough points
-      return;
-    }
-    
-    setCharacter(prev => ({
-      ...prev,
-      craftingSkills: {
-        ...prev.craftingSkills,
-        [skillId]: {
-          ...prev.craftingSkills[skillId as keyof typeof prev.craftingSkills],
-          value: newValue
-        }
-      }
-    }));
-    
-    setCraftingPointsRemaining(prev => prev + pointDifference);
-  };
-
-  const toggleGoodAt = (
-    skillType: 'skills' | 'craftingSkills',
-    skillId: string
-  ) => {
-    setCharacter(prev => {
-      const skillGroup = prev[skillType] as Record<string, { isGoodAt: boolean }>;
-      const skill = skillGroup[skillId];
-  
-      if (!skill) return prev;
-  
-      const currentIsGoodAt = skill.isGoodAt;
-  
-      if (!currentIsGoodAt && goodAtSkillsRemaining <= 0) {
-        return prev;
-      }
-  
-      return {
-        ...prev,
-        [skillType]: {
-          ...skillGroup,
-          [skillId]: {
-            ...skill,
-            isGoodAt: !currentIsGoodAt,
-          },
-        },
-      };
-    });
-  
-    setGoodAtSkillsRemaining(prev => {
-        const skillGroup = character[skillType] as Record<string, { isGoodAt: boolean }>;
-        const skill = skillGroup[skillId];
-        return skill?.isGoodAt ? prev + 1 : prev - 1;
-      });
-  };
-  
-  
 
   // Validate the current step
   const validateStep = (): boolean => {
@@ -297,33 +154,17 @@ const CharacterCreate: React.FC = () => {
         name: character.name,
         race: character.race,
         attributes: character.attributes,
+        modulePoints: character.modulePoints,
+        level: character.level,
         userId: character.userId,
         biography: character.biography,
         appearance: character.appearance,
-        physicalTraits: character.physicalTraits,
-        languages: character.languages,
-        // Transform skills
-        skills: Object.entries(character.skills).reduce((obj, [key, value]) => {
-          obj[key] = { 
-            isGoodAt: value.isGoodAt 
-          };
-          return obj;
-        }, {} as Record<string, { isGoodAt: boolean }>),
-        // Transform crafting skills
-        craftingSkills: Object.entries(character.craftingSkills).reduce((obj, [key, value]) => {
-          obj[key] = { 
-            value: value.value, 
-            isGoodAt: value.isGoodAt 
-          };
-          return obj;
-        }, {} as Record<string, { value: number, isGoodAt: boolean }>)
+        physicalTraits: character.physicalTraits
       };
 
       // In a real app, this would call your API
       console.log("Calling API");
-      //console.log("OUR URL IS" +  apiUrl);
-       // Make a direct request to your Express server
-       const response = await fetch(`/api/characters`, {
+      const response = await fetch(`/api/characters`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -335,10 +176,10 @@ const CharacterCreate: React.FC = () => {
       
 
       if (!response.ok) {
-        console.log("NOT OKAQA")
+        console.log("NOT OK")
         throw new Error('Failed to create character');
       }
-      console.log("OKAQA")
+      console.log("OK")
       const data = await response.json();
       console.log('Character created:', data);
       
@@ -351,18 +192,6 @@ const CharacterCreate: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-  // Calculate derived stat values
-  const calculateDerivedStats = () => {
-    const { physique, agility, mind } = character.attributes;
-    return {
-      initiative: agility + mind,
-      dodge: agility,
-      movement: 5 // Base movement speed
-    };
-  };
-
-  const derivedStats = calculateDerivedStats();
 
   return (
     <div className="min-h-screen py-12">
@@ -397,9 +226,7 @@ const CharacterCreate: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               {[
                 "Basic Info", 
-                "Attributes", 
-                "Skills", 
-                "Crafting", 
+                "Attributes",
                 "Background"
               ].map((stepName, index) => (
                 <div 
@@ -436,7 +263,7 @@ const CharacterCreate: React.FC = () => {
                   >
                     {stepName}
                   </span>
-                  {index < 4 && (
+                  {index < 2 && (
                     <div 
                       style={{
                         position: 'absolute',
@@ -545,6 +372,50 @@ const CharacterCreate: React.FC = () => {
                   />
                 </div>
 
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ 
+                    display: 'block',
+                    color: 'var(--color-cloud)',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Starting Module Points
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <input
+                      type="number"
+                      min="10"
+                      max="100"
+                      step="10"
+                      style={{
+                        width: '100%',
+                        backgroundColor: 'var(--color-dark-elevated)',
+                        color: 'var(--color-white)',
+                        border: '1px solid var(--color-dark-border)',
+                        borderRadius: '0.375rem',
+                        padding: '0.5rem 0.75rem'
+                      }}
+                      value={character.modulePoints.total}
+                      onChange={(e) => updateModulePoints(parseInt(e.target.value))}
+                    />
+                    <div style={{
+                      backgroundColor: 'var(--color-dark-elevated)',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.375rem',
+                      color: 'var(--color-metal-gold)',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      Level: {character.level}
+                    </div>
+                  </div>
+                  <p style={{ 
+                    fontSize: '0.875rem',
+                    color: 'var(--color-cloud)',
+                    marginTop: '0.5rem'
+                  }}>
+                    Module points determine your starting power level. Your character level is calculated as Module Points / 10.
+                  </p>
+                </div>
+
                 <div>
                   <h3 style={{ 
                     color: 'var(--color-white)',
@@ -610,7 +481,7 @@ const CharacterCreate: React.FC = () => {
                   color: 'var(--color-cloud)',
                   marginBottom: '1.5rem'
                 }}>
-                  Attributes define your character's basic capabilities. Each attribute determines a set of related skills. 
+                  Attributes define your character's basic capabilities. Skills and abilities are acquired through modules after character creation.
                   The default value for each attribute is 2.
                 </p>
                 
@@ -628,10 +499,9 @@ const CharacterCreate: React.FC = () => {
                         <div>
                           <span style={{ 
                             color: 'var(--color-cloud)', 
-                            fontSize: '0.875rem', 
-                            marginRight: '0.5rem'
+                            fontSize: '0.875rem'
                           }}>
-                            Skills: {attribute.skills.map(s => SKILL_NAMES[s as keyof typeof SKILL_NAMES]).join(', ')}
+                            {attribute.description}
                           </span>
                         </div>
                       </div>
@@ -721,338 +591,16 @@ const CharacterCreate: React.FC = () => {
                   padding: '1.5rem',
                   marginTop: '2rem'
                 }}>
-                  <h3 style={{ 
-                    color: 'var(--color-metal-gold)', 
-                    fontWeight: 'bold',
-                    marginBottom: '1rem'
-                  }}>
-                    Derived Stats
-                  </h3>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                    <div>
-                      <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Health</div>
-                      <div style={{ 
-                        color: 'var(--color-white)',
-                        fontWeight: 'bold' 
-                      }}>
-                        {character.resources.health.max}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Stamina</div>
-                      <div style={{ 
-                        color: 'var(--color-white)',
-                        fontWeight: 'bold' 
-                      }}>
-                        {character.resources.stamina.max}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Resolve</div>
-                      <div style={{ 
-                        color: 'var(--color-white)',
-                        fontWeight: 'bold' 
-                      }}>
-                        {character.resources.resolve.max}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Initiative</div>
-                      <div style={{ 
-                        color: 'var(--color-white)',
-                        fontWeight: 'bold' 
-                      }}>
-                        {derivedStats.initiative}
-                      </div>
-                    </div>
-                  </div>
+                  <p style={{ color: 'var(--color-cloud)' }}>
+                    Your character's skills, abilities, and other traits will be determined by the modules you select after character creation. 
+                    Modules will allow you to customize your character based on your preferred playstyle.
+                  </p>
                 </div>
               </div>
             )}
             
-            {/* Step 3: Skills */}
+            {/* Step 3: Background */}
             {step === 3 && (
-              <div>
-                <div style={{ 
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '1.5rem'
-                }}>
-                  <h2 style={{ 
-                    color: 'var(--color-white)',
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold'
-                  }}>
-                    Skills
-                  </h2>
-                  <div style={{
-                    backgroundColor: 'var(--color-dark-elevated)',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '0.375rem',
-                    color: goodAtSkillsRemaining > 0 ? 'var(--color-metal-gold)' : 'var(--color-white)'
-                  }}>
-                    "Good At" Selections Remaining: <span style={{ fontWeight: 'bold' }}>{goodAtSkillsRemaining}</span>
-                  </div>
-                </div>
-                
-                <p style={{ 
-                  color: 'var(--color-cloud)',
-                  marginBottom: '1.5rem'
-                }}>
-                  Skills are derived from your attributes. You can select up to three skills that your character is "Good At" which provides bonuses when using those skills.
-                </p>
-                
-                {ATTRIBUTES.map(attribute => (
-                  <div key={attribute.id} style={{ marginBottom: '2rem' }}>
-                    <h3 style={{ 
-                      color: 'var(--color-metal-gold)', 
-                      fontWeight: 'bold',
-                      marginBottom: '1rem'
-                    }}>
-                      {attribute.name} Skills
-                    </h3>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {attribute.skills.map(skill => (
-                        <div key={skill} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '1rem',
-                          backgroundColor: 'var(--color-dark-elevated)',
-                          borderRadius: '0.5rem',
-                          border: character.skills[skill as keyof typeof character.skills].isGoodAt ? 
-                            '1px solid var(--color-metal-gold)' : 
-                            '1px solid var(--color-dark-border)'
-                        }}>
-                          <div>
-                            <div style={{ 
-                              color: 'var(--color-white)', 
-                              fontWeight: 'bold',
-                              marginBottom: '0.25rem'
-                            }}>
-                              {SKILL_NAMES[skill as keyof typeof SKILL_NAMES]}
-                            </div>
-                            <div style={{ 
-                              color: 'var(--color-cloud)', 
-                              fontSize: '0.875rem'
-                            }}>
-                              Value: {character.skills[skill as keyof typeof character.skills].value}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <label style={{ 
-                              display: 'flex',
-                              alignItems: 'center',
-                              color: 'var(--color-white)',
-                              cursor: 'pointer'
-                            }}>
-                              <input
-                                type="checkbox"
-                                checked={character.skills[skill as keyof typeof character.skills].isGoodAt}
-                                onChange={() => toggleGoodAt('skills', skill)}
-                                disabled={!character.skills[skill as keyof typeof character.skills].isGoodAt && goodAtSkillsRemaining <= 0}
-                                style={{ 
-                                  marginRight: '0.5rem',
-                                  accentColor: 'var(--color-metal-gold)'
-                                }}
-                              />
-                              Good At
-                            </label>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {/* Step 4: Crafting Skills */}
-            {step === 4 && (
-              <div>
-                <div style={{ 
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '1.5rem'
-                }}>
-                  <h2 style={{ 
-                    color: 'var(--color-white)',
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold'
-                  }}>
-                    Crafting Skills
-                  </h2>
-                  <div style={{
-                    backgroundColor: 'var(--color-dark-elevated)',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '0.375rem',
-                    color: craftingPointsRemaining > 0 ? 'var(--color-metal-gold)' : 'var(--color-white)'
-                  }}>
-                    Points Remaining: <span style={{ fontWeight: 'bold' }}>{craftingPointsRemaining}</span>
-                  </div>
-                </div>
-                
-                <p style={{ 
-                  color: 'var(--color-cloud)',
-                  marginBottom: '1.5rem'
-                }}>
-                  Crafting skills allow your character to create and modify equipment and technology. 
-                  You have 3 points to distribute among these skills.
-                </p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  {CRAFTING_SKILLS.map(skill => (
-                    <div key={skill.id}>
-                      <div style={{ 
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        marginBottom: '0.5rem'
-                      }}>
-                        <label style={{ color: 'var(--color-metal-gold)', fontWeight: 'bold' }}>
-                          {skill.name}
-                        </label>
-                        
-                        <label style={{ 
-                          display: 'flex',
-                          alignItems: 'center',
-                          color: 'var(--color-white)',
-                          cursor: 'pointer'
-                        }}>
-                          <input
-                            type="checkbox"
-                            checked={character.craftingSkills[skill.id as keyof typeof character.craftingSkills].isGoodAt}
-                            onChange={() => toggleGoodAt('craftingSkills', skill.id)}
-                            disabled={!character.craftingSkills[skill.id as keyof typeof character.craftingSkills].isGoodAt && goodAtSkillsRemaining <= 0}
-                            style={{ 
-                              marginRight: '0.5rem',
-                              accentColor: 'var(--color-metal-gold)'
-                            }}
-                          />
-                          Good At
-                        </label>
-                      </div>
-                      
-                      <div style={{ 
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem'
-                      }}>
-                        <button
-                          type="button"
-                          disabled={character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value <= 0}
-                          onClick={() => updateCraftingSkill(skill.id, Math.max(0, character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value - 1))}
-                          style={{
-                            width: '2.5rem',
-                            height: '2.5rem',
-                            borderRadius: '0.375rem',
-                            backgroundColor: 'var(--color-dark-elevated)',
-                            color: 'var(--color-white)',
-                            border: 'none',
-                            cursor: character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value <= 0 ? 'not-allowed' : 'pointer',
-                            opacity: character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value <= 0 ? 0.5 : 1
-                          }}
-                        >
-                          -
-                        </button>
-                        
-                        <div style={{
-                          width: '3rem',
-                          height: '2.5rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'var(--color-sat-purple-faded)',
-                          color: 'var(--color-white)',
-                          borderRadius: '0.375rem',
-                          fontWeight: 'bold'
-                        }}>
-                          {character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value}
-                        </div>
-                        
-                        <button
-                          type="button"
-                          disabled={character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value >= 3 || craftingPointsRemaining <= 0}
-                          onClick={() => updateCraftingSkill(skill.id, Math.min(3, character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value + 1))}
-                          style={{
-                            width: '2.5rem',
-                            height: '2.5rem',
-                            borderRadius: '0.375rem',
-                            backgroundColor: 'var(--color-dark-elevated)',
-                            color: 'var(--color-white)',
-                            border: 'none',
-                            cursor: (character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value >= 3 || craftingPointsRemaining <= 0) ? 'not-allowed' : 'pointer',
-                            opacity: (character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value >= 3 || craftingPointsRemaining <= 0) ? 0.5 : 1
-                          }}
-                        >
-                          +
-                        </button>
-                        
-                        <div style={{
-                          position: 'relative',
-                          height: '0.75rem',
-                          backgroundColor: 'var(--color-dark-elevated)',
-                          borderRadius: '0.375rem',
-                          flex: 1,
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            height: '100%',
-                            width: `${(character.craftingSkills[skill.id as keyof typeof character.craftingSkills].value / 3) * 100}%`,
-                            backgroundColor: 'var(--color-sat-purple)',
-                            borderRadius: '0.375rem',
-                            transition: 'width 0.3s'
-                          }} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div style={{
-                  backgroundColor: 'var(--color-dark-elevated)',
-                  borderRadius: '0.5rem',
-                  padding: '1.5rem',
-                  marginTop: '2rem'
-                }}>
-                  <h3 style={{ 
-                    color: 'var(--color-metal-gold)', 
-                    fontWeight: 'bold',
-                    marginBottom: '1rem'
-                  }}>
-                    Crafting Skills Descriptions
-                  </h3>
-                  
-                  <ul style={{ color: 'var(--color-white)', listStyle: 'disc', paddingLeft: '1.5rem' }}>
-                    <li style={{ marginBottom: '0.5rem' }}>
-                      <span style={{ fontWeight: 'bold' }}>Engineering:</span> Create and repair mechanical devices, vehicles, and structural components.
-                    </li>
-                    <li style={{ marginBottom: '0.5rem' }}>
-                      <span style={{ fontWeight: 'bold' }}>Fabrication:</span> Manufacture weapons, armor, and equipment using various materials.
-                    </li>
-                    <li style={{ marginBottom: '0.5rem' }}>
-                      <span style={{ fontWeight: 'bold' }}>Biosculpting:</span> Manipulate organic material for medical applications or biological enhancements.
-                    </li>
-                    <li>
-                      <span style={{ fontWeight: 'bold' }}>Synthesist:</span> Create chemicals, compounds, and pharmaceuticals with specific properties.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            )}
-            
-            {/* Step 5: Background */}
-            {step === 5 && (
               <div>
                 <h2 style={{ 
                   color: 'var(--color-white)',
@@ -1188,6 +736,13 @@ const CharacterCreate: React.FC = () => {
                   </div>
                   
                   <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Level</div>
+                    <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                      {character.level} ({character.modulePoints.total} Module Points)
+                    </div>
+                  </div>
+                  
+                  <div>
                     <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Key Attributes</div>
                     <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
                       {Object.entries(character.attributes)
@@ -1195,16 +750,6 @@ const CharacterCreate: React.FC = () => {
                         .slice(0, 2)
                         .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
                         .join(', ')}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Good At Skills</div>
-                    <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                      {Object.entries(character.skills)
-                        .filter(([,skill]) => skill.isGoodAt)
-                        .map(([key]) => SKILL_NAMES[key as keyof typeof SKILL_NAMES] || key)
-                        .join(', ') || 'None selected'}
                     </div>
                   </div>
                 </div>
@@ -1223,7 +768,7 @@ const CharacterCreate: React.FC = () => {
                 </Button>
               )}
               
-              {step < 5 ? (
+              {step < 3 ? (
                 <Button variant="accent" onClick={handleNextStep} style={{ marginLeft: 'auto' }}>
                   Next
                 </Button>

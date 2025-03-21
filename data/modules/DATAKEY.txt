@@ -84,80 +84,24 @@ Example: AS3=2 is Add +3 to might
 Example: AC1=2 is Add +2 to engineering
 
     L: Language
-        1: common
-        2: elven
-        3: orcish
-        4: goblin
-        5: underspeak
-        6: orycotal
-        7: infernal
-        8: lattus
-        9: old_lattus
-        A: arcanascript
-        B: demonic
-        C: divine
-        D: deadspeak
-        E: hssshek
-        F: giant
-        H: shimmerspeak,
-        I: akan
-        J: draconic
-        K: old_draconic
-        L: void_speak
-        M: tidal
-        N: aeron
-        O: okkor
-        P: gnilbark
-        Q: as-bok
-        R: qualatiq
-        S: sylvan
-        U: underspeak
-        V: aeron
-        Z: vethan
-
-  Example: ALO=Learn Okkor (no equal sign for this one)
-
-
+  Example: L="Name of Language"
 
 [WHEN CLAUSE]
 
 W:When
-    0:Wearing Unarmored
-    1:Wearing Light Armored
-    2:Wearing Armor
-    3:Wearing Shield
-        D: See Defense Table
-        R: Remove Penalties
-        Y: Remove Stealth Penalty
-        Z: Remove Cast Penalty
-
-  Example: W1DA=2 is When Wearing Light Armor, Add +2 Elemental Mitigation (fire/cold/lightning)
-
+    0:Wearing Armor
+    1:Wearing Heavy Armor
+    2:Wearing Shield
+        D: (see defense table)
+  Example: W1D1=2 is When Wearing Heavy Armor, Add +2 Kinetic Mitigation
 
 [TRAIT SECTION]
 
 T: Trait
-    A: Ancestry
-    O: Offensive
-    D: Defensive
-    C: Crafting
-    Y: Custom
-        A: Effective Blows
-        B: Scrapper
-        D: Dragonhorde
-        N: Natural Conduit
-        T: Precise Throwing
-        S: Skilled Chucking
-        U: Chucker
-    4:Set Climb to Walk
-    5:Hover to Walk
-    6:Swim to Walk
-    8: Deadly Throwing
-    9: Kobold Throwing
-    V: Spellshot
-    F: Spellfist
-    S: Spellstriker
-
+    1: Species
+    2: Combat
+    3: Crafting
+    4: Custom
   Example: TA is "Show this trait under the ancestry section
 
 [IMMUNITY section]
@@ -166,38 +110,30 @@ I: Immunity
     1: immunity_to_afraid
     2: immunity_to_bleeding
     3: immunity_to_blinded
-    4: immunity_to_charmed
-    5: immunity_to_confused
-    6: immunity_to_dazed
-    7: immunity_to_deafened
-    8: immunity_to_diseased
-    9: immunity_to_enveloped
-    10: immunity_to_exhausted
-    11: immunity_to_frozen
-    12: immunity_to_grappled
-    13: immunity_to_hidden
-    14: immunity_to_ignited
-    15: immunity_to_invisible
-    16: immunity_to_maddened
-    17: immunity_to_muted
-    18: immunity_to_paralyzed
-    19: immunity_to_poisoned
-    20: immunity_to_prone
-    21: immunity_to_sleeping
-    22: immunity_to_stasis
-    23: immunity_to_stunned
-    24: immunity_to_trapped
-    25: immunity_to_unconscious
-    26: immunity_to_wounded
+    4: immunity_to_confused
+    5: immunity_to_dazed
+    6: immunity_to_deafened
+    7: immunity_to_exhausted
+    8: immunity_to_hidden
+    9: immunity_to_ignited
+    10: immunity_to_biological
+    11: immunity_to_prone
+    12: immunity_to_sleeping
+    13: immunity_to_stasis
+    14: immunity_to_stunned
+    15: immunity_to_trapped
+    16: immunity_to_unconscious
+    17: immunity_to_wounded
 
-Example I7=Immunity to Defeaned
+Example I7=Immunity to Wounded
 
 [VISION SECTION]
 D: 
   Vision
-  [NOT CURRENTLY PARSED]
-
-
+  1: Thermal
+  2: Void (night vision)
+  3: Normal
+  4: Enhanced
 
 [ACTION/Reaction]
 
@@ -218,6 +154,13 @@ Example XD1 is Daily action with 1 use
 Y: Free Action
 Example Y
 
+
+//alterations
+
+//android
+//hive
+//psychic
+//
 
 
 

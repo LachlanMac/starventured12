@@ -1,9 +1,9 @@
 {
-  "name": "Acrobat",
+  "name": "Human",
   "ruleset": 0,
   "options": [
     {
-      "name": "Acrobat",
+      "name": "Adaptable",
       "description": "Gain +1 Acrobatics and +1 Initiative.",
       "location": "1",
       "data": "AS3=1:ASH=1"

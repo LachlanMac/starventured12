@@ -1,0 +1,66 @@
+{
+  "name": "Scoundrel",
+  "ruleset": 0,
+  "options": [
+    {
+      "name": "Scoundrel",
+      "description": "Gain +1 Presence and +1 Coordination. You gain advantage on deception checks against humanoids.",
+      "location": "1",
+      "data": "ASG=1:AS6=1:TG"
+    },
+    {
+      "name": "Silver Tongue",
+      "description": "Gain +1 Presence. You can use your action to attempt to confuse or distract a humanoid for 1 round.",
+      "location": "2a",
+      "data": "ASG=1:TD"
+    },
+    {
+      "name": "Quick Fingers",
+      "description": "Gain +1 Coordination. You can pick pockets or perform sleight of hand as a bonus action.",
+      "location": "2b",
+      "data": "AS6=1:TD"
+    },
+    {
+      "name": "Fast on Your Feet",
+      "description": "Gain +1 Movement Speed and +1 Dodge. You can use the Disengage action as a bonus action.",
+      "location": "3",
+      "data": "AV=1:AD2=1:TG"
+    },
+    {
+      "name": "Action : Dirty Trick",
+      "description": "Make a Coordination check against a target's Senses. If successful, the target is Blinded or Deafened (your choice) until the end of your next turn.",
+      "location": "4a",
+      "data": "XX3"
+    },
+    {
+      "name": "Reaction : Slip Away",
+      "description": "When an enemy attacks you and misses, you can move up to half your movement speed without provoking opportunity attacks.",
+      "location": "4b",
+      "data": "ZX2"
+    },
+    {
+      "name": "Opportunist",
+      "description": "You deal an additional 1d6 damage with weapon attacks against creatures that are distracted, surprised, or affected by a status condition.",
+      "location": "5",
+      "data": "TO"
+    },
+    {
+      "name": "Free Action : Feint",
+      "description": "As a free action, make a Presence check against a target's Senses. If successful, you gain advantage on your next attack against that target before the end of your turn.",
+      "location": "6a",
+      "data": "Y"
+    },
+    {
+      "name": "Slippery Mind",
+      "description": "Gain +1 Resistance and advantage on saves against mind-affecting abilities. You can use your Coordination modifier instead of your Resistance modifier for saves against such effects.",
+      "location": "6b",
+      "data": "AD3=1:TD"
+    },
+    {
+      "name": "Master Scoundrel",
+      "description": "Gain +1 Presence and +1 Coordination. Once per turn, when you hit with an attack, you can force the target to make a Resistance check or be Charmed until the end of your next turn.",
+      "location": "7",
+      "data": "ASG=1:AS6=1:TO"
+    }
+  ]
+}
