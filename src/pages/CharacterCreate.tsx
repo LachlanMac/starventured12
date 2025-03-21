@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
+import RaceSelection from '../components/character/RaceSelection';
 
-const RACES = ['Human', 'Android', 'Alien', 'Mutant'];
 
 // Attributes mapping
 const ATTRIBUTES = [
@@ -549,35 +549,13 @@ const CharacterCreate: React.FC = () => {
                   />
                 </div>
                 
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ 
-                    display: 'block',
-                    color: 'var(--color-cloud)',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Race
-                  </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                    {RACES.map(race => (
-                      <button
-                        key={race}
-                        type="button"
-                        style={{
-                          padding: '0.75rem 1.5rem',
-                          borderRadius: '0.375rem',
-                          backgroundColor: character.race === race ? 'var(--color-sat-purple)' : 'var(--color-dark-elevated)',
-                          color: 'var(--color-white)',
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onClick={() => updateCharacter('race', race)}
-                      >
-                        {race}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+       
+              <div style={{ marginBottom: '1.5rem' }}>
+                <RaceSelection 
+                  selectedRace={character.race} 
+                  onSelectRace={(race) => updateCharacter('race', race)} 
+                />
+              </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ 
@@ -655,38 +633,6 @@ const CharacterCreate: React.FC = () => {
                   </p>
                 </div>
 
-                <div>
-                  <h3 style={{ 
-                    color: 'var(--color-white)',
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    marginBottom: '1rem',
-                    marginTop: '2rem'
-                  }}>
-                    Race Information
-                  </h3>
-                  <div style={{
-                    backgroundColor: 'var(--color-dark-elevated)',
-                    borderRadius: '0.5rem',
-                    padding: '1rem'
-                  }}>
-                    {character.race === 'Human' && (
-                      <p>Adaptable and innovative, humans are versatile explorers who have spread throughout the galaxy, establishing colonies and trade networks.</p>
-                    )}
-                    {character.race === 'Android' && (
-                      <p>Synthetic beings with advanced AI, androids combine technological efficiency with evolving consciousness. Some seek identity beyond their programming.</p>
-                    )}
-                    {character.race === 'Alien' && (
-                      <p>Members of non-human species with unique physiologies and cultural perspectives, bringing diversity and unexpected approaches to challenges.</p>
-                    )}
-                    {character.race === 'Mutant' && (
-                      <p>Humans altered by cosmic radiation, experimental genetics, or environmental factors, possessing extraordinary abilities alongside physical differences.</p>
-                    )}
-                    {!character.race && (
-                      <p style={{ color: 'var(--color-cloud)' }}>Select a race to see information</p>
-                    )}
-                  </div>
-                </div>
                 
                 <div style={{ 
                   backgroundColor: 'var(--color-dark-elevated)',
