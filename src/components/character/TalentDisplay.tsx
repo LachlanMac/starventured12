@@ -38,7 +38,6 @@ const TalentDisplay: React.FC<TalentDisplayProps> = ({
             marginRight: '0.25rem',
           }}
         >
-          {talent}
         </span>
       )}
 

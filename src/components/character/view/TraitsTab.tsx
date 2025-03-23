@@ -93,8 +93,7 @@ const TraitsTab: React.FC<TraitsTabProps> = ({ traits, characterId }) => {
                       borderRadius: '0.25rem',
                       fontWeight: 'bold',
                       textTransform: 'capitalize',
-                    }}
-                  >
+                    }}>
                     {trait.type}
                   </span>
                 </div>

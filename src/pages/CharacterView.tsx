@@ -4,16 +4,14 @@ import Button from '../components/ui/Button';
 
 // Import character view components
 import CharacterHeader from '../components/character/view/CharacterHeader';
-import ResourceBars from '../components/character/view/ResourceBars';
 import TabNavigation, { TabType } from '../components/character/view/TabNavigation';
 import InfoTab from '../components/character/view/InfoTab';
-import SkillsTab from '../components/character/view/SkillsTab';
 import ModulesTab from '../components/character/view/ModulesTab';
 import ActionsTab from '../components/character/view/ActionsTab';
 import TraitsTab from '../components/character/view/TraitsTab';
 import BackgroundTab from '../components/character/view/BackgroundTab';
 
-// Type definitions
+// Type definitions included here for completeness
 interface Action {
   name: string;
   description: string;
@@ -42,16 +40,6 @@ interface Trait {
 }
 
 interface SkillData {
-  value: number; // Dice type (1-6)
-  talent: number; // Number of dice (0-3)
-}
-
-interface WeaponSkillData {
-  value: number; // Dice type (1-6)
-  talent: number; // Number of dice (0-3)
-}
-
-interface CraftingSkillData {
   value: number; // Dice type (1-6)
   talent: number; // Number of dice (0-3)
 }
@@ -88,16 +76,16 @@ interface Character {
     presence: SkillData;
   };
   weaponSkills: {
-    rangedWeapons: WeaponSkillData;
-    meleeWeapons: WeaponSkillData;
-    weaponSystems: WeaponSkillData;
-    heavyRangedWeapons: WeaponSkillData;
+    rangedWeapons: SkillData;
+    meleeWeapons: SkillData;
+    weaponSystems: SkillData;
+    heavyRangedWeapons: SkillData;
   };
   craftingSkills: {
-    engineering: CraftingSkillData;
-    fabrication: CraftingSkillData;
-    biosculpting: CraftingSkillData;
-    synthesis: CraftingSkillData;
+    engineering: SkillData;
+    fabrication: SkillData;
+    biosculpting: SkillData;
+    synthesis: SkillData;
   };
   resources: {
     health: { current: number; max: number };
@@ -118,11 +106,11 @@ interface Character {
   modules: any[]; // Simplified for this example
   level: number;
   experience: number;
-  calculatedStats: {
-    initiative: number;
-    movement: number;
-    dodge: number;
+  modulePoints: {
+    total: number;
+    spent: number;
   };
+  movement: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -142,10 +130,22 @@ const CharacterView: React.FC = () => {
     const fetchCharacter = async () => {
       try {
         setLoading(true);
-        // In a real app, this would call your API
-        // const response = await fetch(`/api/characters/${id}`);
-
-        // Mock data for development with the new talent-based system
+        
+        // Use the actual API endpoint instead of mock data
+        const response = await fetch(`/api/characters/${id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch character data');
+        }
+        
+        const characterData = await response.json();
+        console.log('Character data from API:', characterData); // Log to check structure
+        
+        setCharacter(characterData);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching character:', err);
+        
+        // Fallback to mock data for development if needed
         const mockCharacter: Character = {
           _id: id || '12345',
           userId: 'test-user-id',
@@ -158,7 +158,7 @@ const CharacterView: React.FC = () => {
             knowledge: 1,
             social: 2,
           },
-          traits:[],
+          traits: [],
           skills: {
             // Physique Skills
             fitness: { value: 2, talent: 0 },
@@ -235,19 +235,17 @@ const CharacterView: React.FC = () => {
           modules: [],
           level: 3,
           experience: 1250,
-          calculatedStats: {
-            initiative: 5,
-            movement: 5,
-            dodge: 3,
+          modulePoints: {
+            total: 10,
+            spent: 1,
           },
+          movement: 5,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
 
+        console.log('Using mock character data:', mockCharacter);
         setCharacter(mockCharacter);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching character:', err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
         setLoading(false);
       }
@@ -255,6 +253,13 @@ const CharacterView: React.FC = () => {
 
     fetchCharacter();
   }, [id]);
+
+  // Log the character data just before rendering
+  useEffect(() => {
+    if (character) {
+      console.log('Character before rendering:', character);
+    }
+  }, [character]);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this character?')) {
@@ -354,11 +359,6 @@ const CharacterView: React.FC = () => {
     );
   }
 
-  // Derived data
-  const derivedStats = {
-    initiative: character.calculatedStats.initiative
-  };
-
   return (
     <div style={{ minHeight: '100vh' }}>
       <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -380,11 +380,6 @@ const CharacterView: React.FC = () => {
         {/* Character header */}
         <CharacterHeader character={character} onDelete={handleDelete} />
 
-        {/* Character Resources */}
-        <div style={{ marginTop: '1.5rem' }}>
-          <ResourceBars resources={character.resources} />
-        </div>
-
         {/* Tab navigation */}
         <div style={{ marginTop: '2rem' }}>
           <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -392,46 +387,28 @@ const CharacterView: React.FC = () => {
 
         {/* Tab content */}
         <div style={{ marginTop: '1.5rem' }}>
-          {/* Character Info Tab */}
-          {activeTab === 'info' && (
-            <InfoTab 
-              character={character} 
-              derivedStats={derivedStats} 
-            />
-          )}
-
-          {/* Attributes & Skills Tab */}
-          {activeTab === 'skills' && (
-            <SkillsTab character={character} />
-          )}
+          {/* Character Info Tab (now combining Info and Skills) */}
+          {activeTab === 'info' && <InfoTab character={character} />}
 
           {/* Modules Tab */}
           {activeTab === 'modules' && (
-            <ModulesTab 
-              characterId={character._id} 
-              modules={character.modules} 
-            />
+            <ModulesTab characterId={character._id} modules={character.modules} />
           )}
 
           {/* Actions Tab */}
-          {activeTab === 'actions' && (
-            <ActionsTab actions={character.actions} />
-          )}
+          {activeTab === 'actions' && <ActionsTab actions={character.actions} />}
 
           {/* Traits Tab */}
           {activeTab === 'traits' && (
-            <TraitsTab 
-              traits={character.traits} 
-              characterId={character._id} 
-            />
+            <TraitsTab traits={character.traits} characterId={character._id} />
           )}
 
           {/* Background Tab */}
           {activeTab === 'background' && (
-            <BackgroundTab 
-              physicalTraits={character.physicalTraits} 
-              appearance={character.appearance} 
-              biography={character.biography} 
+            <BackgroundTab
+              physicalTraits={character.physicalTraits}
+              appearance={character.appearance}
+              biography={character.biography}
             />
           )}
         </div>

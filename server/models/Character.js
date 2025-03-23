@@ -117,46 +117,46 @@ const CharacterSchema = new Schema({
   // Skills based on attributes - now using updated SkillSchema
   skills: {
     // Physique Skills
-    fitness: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    deflect: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    might: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    fitness: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.physique.default }) },
+    deflect: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.physique.default }) },
+    might: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.physique.default }) },
     
     // Agility Skills
-    evade: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    stealth: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    coordination: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    evade: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.agility.default }) },
+    stealth: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.agility.default }) },
+    coordination: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.agility.default }) },
     
     // Mind Skills
-    resilience: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    concentration: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    senses: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    resilience: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.mind.default }) },
+    concentration: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.mind.default }) },
+    senses: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.mind.default }) },
     
     // Knowledge Skills
-    science: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    technology: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    medicine: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    xenology: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
+    science: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.knowledge.default }) },
+    technology: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.knowledge.default }) },
+    medicine: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.knowledge.default }) },
+    xenology: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.knowledge.default }) },
     
     // Social Skills
-    negotiation: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    behavior: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    presence: { type: SkillSchema, default: () => ({ value: 1, talent: 0 }) }
+    negotiation: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.social.default }) },
+    behavior: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.social.default }) },
+    presence: { type: SkillSchema, default: () => ({ value: 0, talent: attributes.social.default }) }
   },
   
   // Specialized skills that don't depend on attributes
   weaponSkills: {
-    rangedWeapons: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 1 }) },
-    meleeWeapons: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 1 }) },
-    weaponSystems: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 0 }) },
-    heavyRangedWeapons: { type: WeaponSkillSchema, default: () => ({ value: 1, talent: 0 }) }
+    rangedWeapons: { type: WeaponSkillSchema, default: () => ({ value: 0, talent: 1 }) },
+    meleeWeapons: { type: WeaponSkillSchema, default: () => ({ value: 0, talent: 1 }) },
+    weaponSystems: { type: WeaponSkillSchema, default: () => ({ value: 0, talent: 0 }) },
+    heavyRangedWeapons: { type: WeaponSkillSchema, default: () => ({ value: 0, talent: 0 }) }
   },
   
   // Crafting Skills
   craftingSkills: {
-    engineering: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) },
-    fabrication: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) },
-    biosculpting: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) },
-    synthesis: { type: CraftSchema, default: () => ({ value: 1, talent: 0 }) }
+    engineering: { type: CraftSchema, default: () => ({ value: 0, talent: 0 }) },
+    fabrication: { type: CraftSchema, default: () => ({ value: 0, talent: 0 }) },
+    biosculpting: { type: CraftSchema, default: () => ({ value: 0, talent: 0 }) },
+    synthesis: { type: CraftSchema, default: () => ({ value: 0, talent: 0 }) }
   },
   
   // Track remaining talent stars for character creation

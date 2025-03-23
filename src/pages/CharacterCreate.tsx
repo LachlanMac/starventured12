@@ -86,7 +86,7 @@ const CharacterCreate: React.FC = () => {
 
     Object.values(ATTRIBUTE_SKILLS).forEach((skillGroup) => {
       skillGroup.forEach((skill) => {
-        skills[skill.id] = { value: 1, talent: 0 }; // Start with 1d4 and talent based on attribute
+        skills[skill.id] = { value: 0, talent: 0 }; 
       });
     });
 
@@ -98,7 +98,7 @@ const CharacterCreate: React.FC = () => {
     const weaponSkills: Record<string, { value: number; talent: number }> = {};
 
     SPECIALIZED_SKILLS.forEach((skill) => {
-      weaponSkills[skill.id] = { value: 1, talent: skill.defaultTalent }; // Start with 1d4 and default talent
+      weaponSkills[skill.id] = { value: 0, talent: skill.defaultTalent }; // Start with 1d4 and default talent
     });
 
     return weaponSkills;
@@ -109,7 +109,7 @@ const CharacterCreate: React.FC = () => {
     const craftingSkills: Record<string, { value: number; talent: number }> = {};
 
     CRAFTING_SKILLS.forEach((skill) => {
-      craftingSkills[skill.id] = { value: 1, talent: 0 }; // Start with 1d4 and 0 talent
+      craftingSkills[skill.id] = { value: 0, talent: 0 }; // Start with 1d4 and 0 talent
     });
 
     return craftingSkills;

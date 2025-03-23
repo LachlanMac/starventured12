@@ -2,6 +2,11 @@ import React from 'react';
 import Card, { CardHeader, CardBody } from '../../ui/Card';
 import TalentDisplay from '../TalentDisplay';
 
+interface SkillData {
+  value: number; // Dice type (1-6)
+  talent: number; // Number of dice (0-3)
+}
+
 interface Character {
   attributes: {
     physique: number;
@@ -9,6 +14,36 @@ interface Character {
     mind: number;
     knowledge: number;
     social: number;
+  };
+  skills: {
+    fitness: SkillData;
+    deflect: SkillData;
+    might: SkillData;
+    evade: SkillData;
+    stealth: SkillData;
+    coordination: SkillData;
+    resilience: SkillData;
+    concentration: SkillData;
+    senses: SkillData;
+    science: SkillData;
+    technology: SkillData;
+    medicine: SkillData;
+    xenology: SkillData;
+    negotiation: SkillData;
+    behavior: SkillData;
+    presence: SkillData;
+  };
+  weaponSkills: {
+    rangedWeapons: SkillData;
+    meleeWeapons: SkillData;
+    weaponSystems: SkillData;
+    heavyRangedWeapons: SkillData;
+  };
+  craftingSkills: {
+    engineering: SkillData;
+    fabrication: SkillData;
+    biosculpting: SkillData;
+    synthesis: SkillData;
   };
   resources: {
     health: { current: number; max: number };
@@ -22,49 +57,56 @@ interface Character {
     spent: number;
   };
   movement: number;
-  weaponSkills: {
-    rangedWeapons: { talent: number };
-  };
 }
 
 interface InfoTabProps {
   character: Character;
-  derivedStats: {
-    initiative: number;
-  };
 }
 
-// Helper function to render stat bars
-const renderStatBar = (value: number, max: number, color: string = 'var(--color-sat-purple)') => {
-  const percentage = (value / max) * 100;
-  return (
-    <div
-      style={{
-        position: 'relative',
-        height: '0.75rem',
-        backgroundColor: 'var(--color-dark-elevated)',
-        borderRadius: '0.375rem',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          height: '100%',
-          width: `${percentage}%`,
-          backgroundColor: color,
-          borderRadius: '0.375rem',
-        }}
-      />
-    </div>
-  );
+// Attribute skill mappings
+const ATTRIBUTE_SKILLS = {
+  physique: [
+    { id: 'fitness', name: 'Fitness' },
+    { id: 'deflect', name: 'Deflect' },
+    { id: 'might', name: 'Might' },
+  ],
+  agility: [
+    { id: 'evade', name: 'Evade' },
+    { id: 'stealth', name: 'Stealth' },
+    { id: 'coordination', name: 'Coordination' },
+  ],
+  mind: [
+    { id: 'resilience', name: 'Resilience' },
+    { id: 'concentration', name: 'Concentration' },
+    { id: 'senses', name: 'Senses' },
+  ],
+  knowledge: [
+    { id: 'science', name: 'Science' },
+    { id: 'technology', name: 'Technology' },
+    { id: 'medicine', name: 'Medicine' },
+    { id: 'xenology', name: 'Xenology' },
+  ],
+  social: [
+    { id: 'negotiation', name: 'Negotiation' },
+    { id: 'behavior', name: 'Behavior' },
+    { id: 'presence', name: 'Presence' },
+  ],
 };
 
-const InfoTab: React.FC<InfoTabProps> = ({ character, derivedStats }) => {
+// Dice type mapping
+const DICE_TYPES = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'];
+
+const InfoTab: React.FC<InfoTabProps> = ({ character }) => {
+  // Calculate available module points
+  const availableModulePoints = character.modulePoints 
+    ? character.modulePoints.total - (character.modulePoints.spent || 0) 
+    : 0;
+  const totalModulePoints = character.modulePoints?.total || 0;
+
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+    <div className="grid grid-cols-1 gap-6">
+      {/* Character Resources */}
       <Card variant="default">
         <CardHeader>
           <h2
@@ -74,37 +116,188 @@ const InfoTab: React.FC<InfoTabProps> = ({ character, derivedStats }) => {
               fontWeight: 'bold',
             }}
           >
-            Attributes
+            Resources & Details
           </h2>
         </CardHeader>
         <CardBody>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {Object.entries(character.attributes).map(([key, value]) => (
-              <div key={key}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: '0.25rem',
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Health, Stamina, Resolve */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <span style={{ color: 'var(--color-cloud)' }}>Health</span>
+                <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                  {character.resources.health.current}/{character.resources.health.max}
+                </span>
+              </div>
+              <div className="w-full bg-evening rounded-full h-2 mb-4">
+                <div 
+                  className="bg-sunset rounded-full h-2" 
+                  style={{ 
+                    width: `${(character.resources.health.current / character.resources.health.max) * 100}%` 
                   }}
-                >
-                  <span style={{ color: 'var(--color-cloud)' }}>
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                      {value}
-                    </span>
-                    <TalentDisplay talent={value} maxTalent={3} size="sm" />
+                ></div>
+              </div>
+
+              <div className="flex justify-between items-center mb-1">
+                <span style={{ color: 'var(--color-cloud)' }}>Stamina</span>
+                <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                  {character.resources.stamina.current}/{character.resources.stamina.max}
+                </span>
+              </div>
+              <div className="w-full bg-evening rounded-full h-2 mb-4">
+                <div 
+                  className="bg-metal-gold rounded-full h-2" 
+                  style={{ 
+                    width: `${(character.resources.stamina.current / character.resources.stamina.max) * 100}%` 
+                  }}
+                ></div>
+              </div>
+
+              <div className="flex justify-between items-center mb-1">
+                <span style={{ color: 'var(--color-cloud)' }}>Resolve</span>
+                <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                  {character.resources.resolve.current}/{character.resources.resolve.max}
+                </span>
+              </div>
+              <div className="w-full bg-evening rounded-full h-2">
+                <div 
+                  className="bg-sat-purple rounded-full h-2" 
+                  style={{ 
+                    width: `${(character.resources.resolve.current / character.resources.resolve.max) * 100}%` 
+                  }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Character Details */}
+            <div className="col-span-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                    Movement
+                  </div>
+                  <div style={{ color: 'var(--color-white)' }}>
+                    {character.movement} Units
                   </div>
                 </div>
-                {renderStatBar(value, 3)}
+
+                <div>
+                  <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                    Module Points
+                  </div>
+                  <div style={{ color: 'var(--color-white)' }}>
+                    {availableModulePoints} / {totalModulePoints} (Available/Total)
+                  </div>
+                </div>
+
+                {character.languages && character.languages.length > 0 && (
+                  <div>
+                    <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                      Languages
+                    </div>
+                    <div style={{ color: 'var(--color-white)' }}>
+                      {character.languages.join(', ')}
+                    </div>
+                  </div>
+                )}
+
+                {character.stances && character.stances.length > 0 && (
+                  <div>
+                    <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                      Stances
+                    </div>
+                    <div style={{ color: 'var(--color-white)' }}>
+                      {character.stances.join(', ')}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Attributes and Skills */}
+      <Card variant="default">
+        <CardHeader>
+          <h2
+            style={{
+              color: 'var(--color-white)',
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+            }}
+          >
+            Attributes & Skills
+          </h2>
+        </CardHeader>
+        <CardBody>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {Object.entries(ATTRIBUTE_SKILLS).map(([attributeKey, skills]) => (
+              <div 
+                key={attributeKey} 
+                className="p-4 bg-dark-elevated rounded-lg border border-dark-border"
+              >
+                {/* Attribute Name and Stars */}
+                <div className="flex justify-between items-center mb-3">
+                  <h3 
+                    style={{ 
+                      color: 'var(--color-metal-gold)', 
+                      fontSize: '1.125rem', 
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {attributeKey.charAt(0).toUpperCase() + attributeKey.slice(1)}
+                  </h3>
+                  <TalentDisplay 
+                    talent={character.attributes[attributeKey as keyof typeof character.attributes]} 
+                    maxTalent={3} 
+                    showNumber={true}
+                    size="md"
+                  />
+                </div>
+
+                {/* Related Skills */}
+                <div className="space-y-2">
+                  {skills.map((skill) => {
+                    const skillData = character.skills[skill.id as keyof typeof character.skills];
+                    // Now we use the attribute value for talent (number of dice)
+                    // and the skill value for the die type
+                    const attributeValue = character.attributes[attributeKey as keyof typeof character.attributes];
+                    const dieType = attributeValue + DICE_TYPES[Math.min(skillData.value, DICE_TYPES.length - 1)];
+                    
+                    return (
+                      <div key={skill.id} className="flex justify-between items-center">
+                        <span style={{ color: 'var(--color-white)' }}>{skill.name}</span>
+                        <div className="flex items-center gap-2">
+                         
+                          <span 
+                            style={{ 
+                              color: 'var(--color-metal-gold)', 
+                              fontWeight: 'bold' 
+                            }}
+                          >
+                            {skillData.value >= 0 ? `+${skillData.value}` : '-'}
+                          </span>
+                          <span 
+                            style={{ 
+                              color: 'var(--color-cloud)', 
+                              fontSize: '0.875rem' 
+                            }}
+                          >
+                            ({dieType})
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
         </CardBody>
       </Card>
 
+      {/* Weapon Skills */}
       <Card variant="default">
         <CardHeader>
           <h2
@@ -114,64 +307,49 @@ const InfoTab: React.FC<InfoTabProps> = ({ character, derivedStats }) => {
               fontWeight: 'bold',
             }}
           >
-            Character Details
+            Weapon Skills
           </h2>
         </CardHeader>
         <CardBody>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>
-                Initiative
-              </div>
-              <div style={{ color: 'var(--color-white)' }}>
-                {derivedStats.initiative}
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(character.weaponSkills)
+              .filter(([_, data]) => data.talent > 0) // Only show skills with talent
+              .map(([skillId, skillData]) => {
+                const dieType = DICE_TYPES[Math.min(skillData.value, DICE_TYPES.length - 1)];
 
-            <div>
-              <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>
-                Movement
-              </div>
-              <div style={{ color: 'var(--color-white)' }}>
-                {character.movement} Units
-              </div>
-            </div>
-
-            <div>
-              <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>
-                Module Points
-              </div>
-              <div style={{ color: 'var(--color-white)' }}>
-                {character.modulePoints.total - character.modulePoints.spent} / {character.modulePoints.total} (Available/Total)
-              </div>
-            </div>
-
-            {character.languages && character.languages.length > 0 && (
-              <div>
-                <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>
-                  Languages
-                </div>
-                <div style={{ color: 'var(--color-white)' }}>
-                  {character.languages.join(', ')}
-                </div>
-              </div>
-            )}
-
-            {character.stances && character.stances.length > 0 && (
-              <div>
-                <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>
-                  Stances
-                </div>
-                <div style={{ color: 'var(--color-white)' }}>
-                  {character.stances.join(', ')}
-                </div>
+                return (
+                  <div 
+                    key={skillId} 
+                    className="flex justify-between items-center p-3 bg-dark-elevated rounded-lg"
+                  >
+                    <div>
+                      <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                        {skillId
+                          .replace(/([A-Z])/g, ' $1')
+                          .replace(/^./, str => str.toUpperCase())}
+                      </div>
+                      <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem' }}>
+                       
+                        {skillData.talent > 0 ? `${skillData.talent}${dieType}` : 'No dice'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <TalentDisplay talent={skillData.talent} maxTalent={3} size="md" />
+                    </div>
+                  </div>
+                );
+              })}
+            {!Object.values(character.weaponSkills).some(skill => skill.talent > 0) && (
+              <div className="col-span-2 text-center p-4 text-cloud">
+                No weapon skills with talent points assigned.
               </div>
             )}
           </div>
         </CardBody>
       </Card>
 
-      <Card variant="default" style={{ gridColumn: 'span 2' }}>
+      {/* Crafting Skills */}
+      <Card variant="default">
         <CardHeader>
           <h2
             style={{
@@ -180,7 +358,54 @@ const InfoTab: React.FC<InfoTabProps> = ({ character, derivedStats }) => {
               fontWeight: 'bold',
             }}
           >
-            Dice & Talent System
+            Crafting Skills
+          </h2>
+        </CardHeader>
+        <CardBody>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(character.craftingSkills)
+              .filter(([_, data]) => data.talent > 0) // Only show skills with talent
+              .map(([skillId, skillData]) => {
+                const dieType = DICE_TYPES[Math.min(skillData.value, DICE_TYPES.length - 1)];
+                return (
+                  <div 
+                    key={skillId} 
+                    className="flex justify-between items-center p-3 bg-dark-elevated rounded-lg"
+                  >
+                    <div>
+                      <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
+                        {skillId.charAt(0).toUpperCase() + skillId.slice(1)}
+                      </div>
+                      <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem' }}>
+                        {skillData.talent > 0 ? `${skillData.talent}${dieType}` : 'No dice'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <TalentDisplay talent={skillData.talent} maxTalent={3} size="md" />
+                    </div>
+                  </div>
+                );
+              })}
+            {!Object.values(character.craftingSkills).some(skill => skill.talent > 0) && (
+              <div className="col-span-2 text-center p-4 text-cloud">
+                No crafting skills with talent points assigned.
+              </div>
+            )}
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Dice System Reference Card */}
+      <Card variant="default">
+        <CardHeader>
+          <h2
+            style={{
+              color: 'var(--color-white)',
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+            }}
+          >
+            Dice System Reference
           </h2>
         </CardHeader>
         <CardBody>
@@ -191,10 +416,8 @@ const InfoTab: React.FC<InfoTabProps> = ({ character, derivedStats }) => {
               fontSize: '0.875rem',
             }}
           >
-            For skill checks, you roll a number of dice determined by your Talent stars. For
-            attribute skills, you roll a number of dice equal to your attribute value. For
-            specialized skills like Weapon and Crafting skills, you roll dice based on the
-            talent value assigned to that skill.
+            For skill checks, you roll a number of dice determined by your attribute value or talent stars.
+            The die type (d4, d6, etc.) is determined by the skill level, which can be improved through modules.
           </p>
 
           <div
@@ -222,15 +445,13 @@ const InfoTab: React.FC<InfoTabProps> = ({ character, derivedStats }) => {
               }}
             >
               <li style={{ marginBottom: '0.5rem' }}>
-                A character with Physique {character.attributes.physique} and Fitness skill (1d6) would roll {character.attributes.physique}d6 for
-                Fitness checks.
+                <strong>Attribute Skills:</strong> For Fitness (d{character.skills.fitness.value * 2 + 2}), roll {character.attributes.physique}d{character.skills.fitness.value * 2 + 2} based on your Physique attribute.
               </li>
               <li style={{ marginBottom: '0.5rem' }}>
-                A character with Ranged Weapons skill (1d8) and {character.weaponSkills.rangedWeapons.talent} talent stars would roll {character.weaponSkills.rangedWeapons.talent}d8 for Ranged Weapon attacks.
+                <strong>Weapon Skills:</strong> For Ranged Weapons (d{character.weaponSkills.rangedWeapons.value * 2 + 2}), roll {character.weaponSkills.rangedWeapons.talent}d{character.weaponSkills.rangedWeapons.value * 2 + 2} based on your talent stars.
               </li>
               <li>
-                A character with Knowledge {character.attributes.knowledge} and Science skill (1d10) would roll {character.attributes.knowledge}d10 for
-                Science checks.
+                <strong>Crafting Skills:</strong> For Engineering (d{character.craftingSkills.engineering.value * 2 + 2}), roll {character.craftingSkills.engineering.talent}d{character.craftingSkills.engineering.value * 2 + 2} based on your talent stars.
               </li>
             </ul>
           </div>

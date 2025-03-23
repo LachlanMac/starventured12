@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type TabType = 'info' | 'skills' | 'modules' | 'actions' | 'traits' | 'background';
+export type TabType = 'info' | 'modules' | 'actions' | 'traits' | 'background';
 
 interface TabNavigationProps {
   activeTab: TabType;
@@ -10,7 +10,6 @@ interface TabNavigationProps {
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, setActiveTab }) => {
   const tabs: { id: TabType; label: string }[] = [
     { id: 'info', label: 'Character Info' },
-    { id: 'skills', label: 'Attributes & Skills' },
     { id: 'modules', label: 'Modules' },
     { id: 'actions', label: 'Actions' },
     { id: 'traits', label: 'Traits' },
