@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
 import RaceSelection from '../components/character/RaceSelection';
+import TraitSelection from '../components/character/TraitSelection';
 
 
 // Attributes mapping
@@ -13,6 +14,14 @@ const ATTRIBUTES = [
   { id: 'knowledge', name: 'Knowledge', description: 'Education, technical expertise, and wisdom.' },
   { id: 'social', name: 'Social', description: 'Charisma, empathy, and ability to influence others.' }
 ];
+
+interface Trait {
+  _id: string;
+  name: string;
+  type: 'positive' | 'negative';
+  description: string;
+}
+
 
 // Skill mappings by attribute category
 const ATTRIBUTE_SKILLS = {
@@ -68,7 +77,7 @@ const CharacterCreate: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [selectedTraits, setSelectedTraits] = useState<Trait[]>([]);
   // Tracking for attribute and talent points
   const [attributePointsRemaining, setAttributePointsRemaining] = useState<number>(5);
   const [talentStarsRemaining, setTalentStarsRemaining] = useState<number>(5);
@@ -346,9 +355,38 @@ const CharacterCreate: React.FC = () => {
           return false;
         }
         return true;
-      
+      case 4:
+        // Check if exactly 3 traits are selected
+        if (selectedTraits.length !== 3) {
+          setError(`You must select exactly 3 traits. Currently selected: ${selectedTraits.length}`);
+          return false;
+        }
+        return true;
       default:
         return true;
+    }
+  };
+
+  const handleSelectTrait = (trait: Trait) => {
+    setSelectedTraits(prev => [...prev, trait]);
+    
+    // If it's a positive trait, deduct a module point
+    if (trait.type === 'positive') {
+      character.modulePoints.spent += 1;
+    }
+  };
+
+
+  const handleDeselectTrait = (traitId: string) => {
+    // Find the trait before removing it
+    const trait = selectedTraits.find(t => t._id === traitId);
+    
+    // Remove the trait
+    setSelectedTraits(prev => prev.filter(t => t._id !== traitId));
+    
+    // If it was a positive trait, refund the module point
+    if (trait && trait.type === 'positive') {
+      character.modulePoints.spent -= 1;
     }
   };
 
@@ -390,7 +428,13 @@ const CharacterCreate: React.FC = () => {
         characterCreation: {
           attributePointsRemaining: attributePointsRemaining,
           talentStarsRemaining: talentStarsRemaining
-        }
+        },
+        traits: selectedTraits.map(trait => ({
+          traitId: trait._id,
+          name: trait.name,
+          type: trait.type,
+          description: trait.description
+        })),
       };
 
       // In a real app, this would call your API
@@ -454,12 +498,7 @@ const CharacterCreate: React.FC = () => {
           <CardHeader>
             {/* Step indicators */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              {[
-                "Basic Info", 
-                "Attributes",
-                "Talents",
-                "Background"
-              ].map((stepName, index) => (
+              {["Basic Info", "Attributes", "Talents", "Traits", "Background"].map((stepName, index) => (
                 <div 
                   key={index}
                   style={{
@@ -557,29 +596,7 @@ const CharacterCreate: React.FC = () => {
                 />
               </div>
 
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ 
-                    display: 'block',
-                    color: 'var(--color-cloud)',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Gender
-                  </label>
-                  <input
-                    type="text"
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      color: 'var(--color-white)',
-                      border: '1px solid var(--color-dark-border)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem'
-                    }}
-                    value={character.physicalTraits.gender}
-                    onChange={(e) => updateNestedField('physicalTraits', 'gender', e.target.value)}
-                    placeholder="Enter gender (optional)"
-                  />
-                </div>
+                
 
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ 
@@ -606,23 +623,13 @@ const CharacterCreate: React.FC = () => {
                       value={character.modulePoints.total}
                       onChange={(e) => {
                         const value = parseInt(e.target.value);
-                        const level = Math.floor(value / 10);
                         updateCharacter('modulePoints', {
                           total: value,
                           spent: 0
                         });
-                        updateCharacter('level', level > 0 ? level : 1);
                       }}
                     />
-                    <div style={{
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.375rem',
-                      color: 'var(--color-metal-gold)',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      Level: {character.level}
-                    </div>
+
                   </div>
                   <p style={{ 
                     fontSize: '0.875rem',
@@ -630,27 +637,6 @@ const CharacterCreate: React.FC = () => {
                     marginTop: '0.5rem'
                   }}>
                     Module points determine your starting power level. Your character level is calculated as Module Points / 10.
-                  </p>
-                </div>
-
-                
-                <div style={{ 
-                  backgroundColor: 'var(--color-dark-elevated)',
-                  borderRadius: '0.5rem',
-                  padding: '1rem',
-                  marginTop: '2rem'
-                }}>
-                  <h3 style={{ 
-                    color: 'var(--color-white)',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Character Creation Point System
-                  </h3>
-                  <p style={{ color: 'var(--color-cloud)', fontSize: '0.875rem' }}>
-                    In the next steps, you will distribute <strong style={{ color: 'var(--color-metal-gold)' }}>5 attribute points</strong> and <strong style={{ color: 'var(--color-metal-gold)' }}>5 talent stars</strong>. 
-                    Attributes determine how many dice you roll for related skills, while talent stars determine specialized skills not tied to attributes.
                   </p>
                 </div>
               </div>
@@ -1038,10 +1024,29 @@ const CharacterCreate: React.FC = () => {
                 </div>
               </div>
             )}
-
+            {/* Step 4: Traits */}
+{step === 4 && (
+  <div>
+    <h2 style={{ 
+      color: 'var(--color-white)',
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+      marginBottom: '1.5rem'
+    }}>
+      Character Traits
+    </h2>
+    
+    <TraitSelection
+      selectedTraits={selectedTraits}
+      onSelectTrait={handleSelectTrait}
+      onDeselectTrait={handleDeselectTrait}
+      availableModulePoints={character.modulePoints.total - character.modulePoints.spent}
+    />
+  </div>
+)}
             
-            {/* Step 4: Background */}
-            {step === 4 && (
+            {/* Step 5: Background */}
+            {step === 5 && (
               <div>
                 <h2 style={{ 
                   color: 'var(--color-white)',
@@ -1104,6 +1109,31 @@ const CharacterCreate: React.FC = () => {
                   </div>
                 </div>
                 
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ 
+                    display: 'block',
+                    color: 'var(--color-cloud)',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Gender
+                  </label>
+                  <input
+                    type="text"
+                    style={{
+                      width: '100%',
+                      backgroundColor: 'var(--color-dark-elevated)',
+                      color: 'var(--color-white)',
+                      border: '1px solid var(--color-dark-border)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem'
+                    }}
+                    value={character.physicalTraits.gender}
+                    onChange={(e) => updateNestedField('physicalTraits', 'gender', e.target.value)}
+                    placeholder="Enter gender (optional)"
+                  />
+                </div>
+
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ 
                     display: 'block',

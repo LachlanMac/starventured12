@@ -27,6 +27,15 @@ interface ModuleOption {
   selected: boolean;
 }
 
+interface Trait {
+  traitId: string;
+  name: string;
+  type: 'positive' | 'negative';
+  description: string;
+  dateAdded: string;
+}
+
+
 interface Module {
   id: number;
   name: string;
@@ -62,6 +71,7 @@ interface Character {
     knowledge: number;
     social: number;
   };
+  traits: Trait[];
   skills: {
     fitness: SkillData;
     deflect: SkillData;
@@ -129,7 +139,7 @@ const CharacterView: React.FC = () => {
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'info' | 'skills' | 'modules' | 'actions' | 'background'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'skills' | 'modules' | 'actions'| 'traits' | 'background'>('info');
   
   useEffect(() => {
     const fetchCharacter = async () => {
@@ -577,6 +587,21 @@ const CharacterView: React.FC = () => {
           >
             Actions
           </button>
+          <button
+          onClick={() => setActiveTab('traits')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            color: activeTab === 'traits' ? 'var(--color-metal-gold)' : 'var(--color-cloud)',
+            fontWeight: activeTab === 'traits' ? 'bold' : 'normal',
+            borderBottom: activeTab === 'traits' ? '2px solid var(--color-metal-gold)' : 'none',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          Traits
+        </button>
+
           <button
             onClick={() => setActiveTab('background')}
             style={{
@@ -1058,6 +1083,82 @@ const CharacterView: React.FC = () => {
             </div>
           )}
           
+          {/* Traits Tab */}
+          {activeTab === 'traits' && (
+            <div>
+              {character.traits.length === 0 ? (
+                <Card variant="default">
+                  <CardBody>
+                    <div style={{ 
+                      textAlign: 'center',
+                      padding: '2rem'
+                    }}>
+                      <div style={{ 
+                        color: 'var(--color-cloud)',
+                        marginBottom: '1rem'
+                      }}>
+                        No traits selected for this character.
+                      </div>
+                      <Button variant="secondary" onClick={() => navigate(`/characters/${character._id}/edit`)}>Edit Character</Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              ) : (
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                  gap: '1rem'
+                }}>
+                  {character.traits.map(trait => (
+                    <Card 
+                      key={trait.traitId} 
+                      variant="default"
+                    >
+                      <CardHeader style={{
+                        backgroundColor: trait.type === 'positive' ? 
+                          'rgba(215, 183, 64, 0.2)' : 
+                          'rgba(152, 94, 109, 0.2)'
+                      }}>
+                        <div style={{ 
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}>
+                          <h2 style={{ 
+                            color: trait.type === 'positive' ? 'var(--color-metal-gold)' : 'var(--color-sunset)',
+                            fontSize: '1.125rem',
+                            fontWeight: 'bold'
+                          }}>
+                            {trait.name}
+                          </h2>
+                          <span style={{
+                            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                            color: 'var(--color-white)',
+                            fontSize: '0.75rem',
+                            padding: '0.125rem 0.375rem',
+                            borderRadius: '0.25rem',
+                            fontWeight: 'bold',
+                            textTransform: 'capitalize'
+                          }}>
+                            {trait.type}
+                          </span>
+                        </div>
+                      </CardHeader>
+                      <CardBody>
+                        <p style={{ 
+                          color: 'var(--color-cloud)',
+                          fontSize: '0.875rem'
+                        }}>
+                          {trait.description}
+                        </p>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Background Tab */}
           {activeTab === 'background' && (
             <div>

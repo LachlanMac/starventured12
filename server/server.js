@@ -12,14 +12,14 @@ import cookieParser from 'cookie-parser';
 import characterRoutes from './routes/characterRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import moduleRoutes from './routes/moduleRoutes.js';
-
+import traitRoutes from './routes/traitRoutes.js';
 // Import middleware
 import { getUser } from './middleware/auth.js';
 
 // Import config and utils
 import setupPassport from './config/passport.js';
 import { initializeModules } from './utils/moduleSeeder.js';
-
+import { initializeTraits } from './utils/traitSeeder.js';
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,6 +67,9 @@ const connectDB = async () => {
     console.log('Initializing modules...');
     await initializeModules();
     console.log('Modules initialized');
+    console.log('Initializing traits...');
+    await initializeTraits();
+    console.log('Traits initialized');
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${error.message}`);
     process.exit(1);
@@ -77,7 +80,7 @@ const connectDB = async () => {
 app.use('/api/auth', authRoutes);
 app.use('/api/characters', characterRoutes);
 app.use('/api/modules', moduleRoutes);
-
+app.use('/api/traits', traitRoutes);
 // Root route for API health check
 app.get('/api', (req, res) => {
   res.json({ message: 'API is running' });
