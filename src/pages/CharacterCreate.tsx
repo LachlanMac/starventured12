@@ -2,36 +2,39 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
-import RaceSelection from '../components/character/RaceSelection';
-import TraitSelection from '../components/character/TraitSelection';
 
-// Attributes mapping
-const ATTRIBUTES = [
-  {
-    id: 'physique',
-    name: 'Physique',
-    description: 'Physical strength, endurance, and overall body power.',
-  },
-  { id: 'agility', name: 'Agility', description: 'Speed, reflexes, balance, and coordination.' },
-  { id: 'mind', name: 'Mind', description: 'Mental fortitude, focus, and perception.' },
-  {
-    id: 'knowledge',
-    name: 'Knowledge',
-    description: 'Education, technical expertise, and wisdom.',
-  },
-  {
-    id: 'social',
-    name: 'Social',
-    description: 'Charisma, empathy, and ability to influence others.',
-  },
-];
+// Import creator components
+import StepIndicator from '../components/character/creator/StepIndicator';
+import BasicInfoTab from '../components/character/creator/BasicInfoTab';
+import AttributesTab from '../components/character/creator/AttributesTab';
+import TalentsTab from '../components/character/creator/TalentsTab';
+import TraitsCreatorTab from '../components/character/creator/TraitsCreatorTab';
+import BackgroundCreatorTab from '../components/character/creator/BackgroundCreatorTab';
 
+// Type definitions
 interface Trait {
   _id: string;
   name: string;
   type: 'positive' | 'negative';
   description: string;
 }
+
+
+// Specialized skills that don't depend on attributes
+const SPECIALIZED_SKILLS = [
+  { id: 'rangedWeapons', name: 'Ranged Weapons', defaultTalent: 1 },
+  { id: 'meleeWeapons', name: 'Melee Weapons', defaultTalent: 1 },
+  { id: 'weaponSystems', name: 'Weapon Systems', defaultTalent: 0 },
+  { id: 'heavyRangedWeapons', name: 'Heavy Ranged Weapons', defaultTalent: 0 },
+];
+
+// Crafting skills
+const CRAFTING_SKILLS = [
+  { id: 'engineering', name: 'Engineering' },
+  { id: 'fabrication', name: 'Fabrication' },
+  { id: 'biosculpting', name: 'Biosculpting' },
+  { id: 'synthesis', name: 'Synthesis' },
+];
 
 // Skill mappings by attribute category
 const ATTRIBUTE_SKILLS = {
@@ -63,31 +66,19 @@ const ATTRIBUTE_SKILLS = {
   ],
 };
 
-// Specialized skills that don't depend on attributes
-const SPECIALIZED_SKILLS = [
-  { id: 'rangedWeapons', name: 'Ranged Weapons', defaultTalent: 1 },
-  { id: 'meleeWeapons', name: 'Melee Weapons', defaultTalent: 1 },
-  { id: 'weaponSystems', name: 'Weapon Systems', defaultTalent: 0 },
-  { id: 'heavyRangedWeapons', name: 'Heavy Ranged Weapons', defaultTalent: 0 },
-];
-
-// Crafting skills
-const CRAFTING_SKILLS = [
-  { id: 'engineering', name: 'Engineering' },
-  { id: 'fabrication', name: 'Fabrication' },
-  { id: 'biosculpting', name: 'Biosculpting' },
-  { id: 'synthesis', name: 'Synthesis' },
-];
-
 const CharacterCreate: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTraits, setSelectedTraits] = useState<Trait[]>([]);
+  
   // Tracking for attribute and talent points
   const [attributePointsRemaining, setAttributePointsRemaining] = useState<number>(5);
   const [talentStarsRemaining, setTalentStarsRemaining] = useState<number>(5);
+
+  // Define steps
+  const steps = ['Basic Info', 'Attributes', 'Talents', 'Traits', 'Background'];
 
   // Initialize skills for each attribute
   const initializeSkills = () => {
@@ -331,7 +322,7 @@ const CharacterCreate: React.FC = () => {
 
     // If it's a positive trait, deduct a module point
     if (trait.type === 'positive') {
-      character.modulePoints.spent += 1;
+      updateNestedField('modulePoints', 'spent', character.modulePoints.spent + 1);
     }
   };
 
@@ -344,7 +335,7 @@ const CharacterCreate: React.FC = () => {
 
     // If it was a positive trait, refund the module point
     if (trait && trait.type === 'positive') {
-      character.modulePoints.spent -= 1;
+      updateNestedField('modulePoints', 'spent', character.modulePoints.spent - 1);
     }
   };
 
@@ -456,968 +447,72 @@ const CharacterCreate: React.FC = () => {
         <Card variant="default">
           <CardHeader>
             {/* Step indicators */}
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              {['Basic Info', 'Attributes', 'Talents', 'Traits', 'Background'].map(
-                (stepName, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      width: '100%',
-                      position: 'relative',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '2rem',
-                        height: '2rem',
-                        borderRadius: '9999px',
-                        backgroundColor:
-                          step >= index + 1
-                            ? 'var(--color-sat-purple)'
-                            : 'var(--color-dark-elevated)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'var(--color-white)',
-                        fontWeight: 'bold',
-                        marginBottom: '0.5rem',
-                      }}
-                    >
-                      {index + 1}
-                    </div>
-                    <span
-                      style={{
-                        fontSize: '0.875rem',
-                        color: step >= index + 1 ? 'var(--color-metal-gold)' : 'var(--color-cloud)',
-                      }}
-                    >
-                      {stepName}
-                    </span>
-                    {index < 3 && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '1rem',
-                          right: '-50%',
-                          width: '100%',
-                          height: '2px',
-                          backgroundColor:
-                            step > index + 1
-                              ? 'var(--color-sat-purple)'
-                              : 'var(--color-dark-elevated)',
-                          zIndex: 0,
-                        }}
-                      />
-                    )}
-                  </div>
-                )
-              )}
-            </div>
+            <StepIndicator currentStep={step} steps={steps} />
           </CardHeader>
 
           <CardBody>
             {/* Step 1: Basic Information */}
             {step === 1 && (
-              <div>
-                <h2
-                  style={{
-                    color: 'var(--color-white)',
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  Basic Information
-                </h2>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      color: 'var(--color-cloud)',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Character Name
-                  </label>
-                  <input
-                    type="text"
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      color: 'var(--color-white)',
-                      border: '1px solid var(--color-dark-border)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                    }}
-                    value={character.name}
-                    onChange={(e) => updateCharacter('name', e.target.value)}
-                    placeholder="Enter character name"
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <RaceSelection
-                    selectedRace={character.race}
-                    onSelectRace={(race) => updateCharacter('race', race)}
-                  />
-                </div>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      color: 'var(--color-cloud)',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Starting Module Points
-                  </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <input
-                      type="number"
-                      min="10"
-                      max="100"
-                      step="10"
-                      style={{
-                        width: '100%',
-                        backgroundColor: 'var(--color-dark-elevated)',
-                        color: 'var(--color-white)',
-                        border: '1px solid var(--color-dark-border)',
-                        borderRadius: '0.375rem',
-                        padding: '0.5rem 0.75rem',
-                      }}
-                      value={character.modulePoints.total}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        updateCharacter('modulePoints', {
-                          total: value,
-                          spent: 0,
-                        });
-                      }}
-                    />
-                  </div>
-                  <p
-                    style={{
-                      fontSize: '0.875rem',
-                      color: 'var(--color-cloud)',
-                      marginTop: '0.5rem',
-                    }}
-                  >
-                    Module points determine your starting power level. Your character level is
-                    calculated as Module Points / 10.
-                  </p>
-                </div>
-              </div>
+              <BasicInfoTab 
+                name={character.name}
+                race={character.race}
+                modulePoints={character.modulePoints.total}
+                onNameChange={(name) => updateCharacter('name', name)}
+                onRaceChange={(race) => updateCharacter('race', race)}
+                onModulePointsChange={(points) => {
+                  updateNestedField('modulePoints', 'total', points);
+                  updateCharacter('level', Math.floor(points / 10));
+                }}
+              />
             )}
 
             {/* Step 2: Attributes */}
             {step === 2 && (
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  <h2
-                    style={{
-                      color: 'var(--color-white)',
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    Attributes
-                  </h2>
-                  <div
-                    style={{
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.375rem',
-                      color:
-                        attributePointsRemaining > 0
-                          ? 'var(--color-metal-gold)'
-                          : 'var(--color-white)',
-                    }}
-                  >
-                    Points Remaining:{' '}
-                    <span style={{ fontWeight: 'bold' }}>{attributePointsRemaining}</span>
-                  </div>
-                </div>
-
-                <p
-                  style={{
-                    color: 'var(--color-cloud)',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  Attributes define your character's basic capabilities. Each attribute has a
-                  maximum value of 3 and determines the number of dice you roll for related skills.
-                  All attributes start at 1.
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  {ATTRIBUTES.map((attribute) => (
-                    <div key={attribute.id}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        <label style={{ color: 'var(--color-metal-gold)', fontWeight: 'bold' }}>
-                          {attribute.name}
-                        </label>
-                        <div>
-                          <span
-                            style={{
-                              color: 'var(--color-cloud)',
-                              fontSize: '0.875rem',
-                            }}
-                          >
-                            {attribute.description}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <button
-                          type="button"
-                          disabled={
-                            character.attributes[
-                              attribute.id as keyof typeof character.attributes
-                            ] <= 1
-                          }
-                          onClick={() =>
-                            updateAttribute(
-                              attribute.id,
-                              Math.max(
-                                1,
-                                character.attributes[
-                                  attribute.id as keyof typeof character.attributes
-                                ] - 1
-                              )
-                            )
-                          }
-                          style={{
-                            width: '2.5rem',
-                            height: '2.5rem',
-                            borderRadius: '0.375rem',
-                            backgroundColor: 'var(--color-dark-elevated)',
-                            color: 'var(--color-white)',
-                            border: 'none',
-                            cursor:
-                              character.attributes[
-                                attribute.id as keyof typeof character.attributes
-                              ] <= 1
-                                ? 'not-allowed'
-                                : 'pointer',
-                            opacity:
-                              character.attributes[
-                                attribute.id as keyof typeof character.attributes
-                              ] <= 1
-                                ? 0.5
-                                : 1,
-                          }}
-                        >
-                          -
-                        </button>
-
-                        <div
-                          style={{
-                            width: '3rem',
-                            height: '2.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: 'var(--color-sat-purple-faded)',
-                            color: 'var(--color-white)',
-                            borderRadius: '0.375rem',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {character.attributes[attribute.id as keyof typeof character.attributes]}
-                        </div>
-
-                        <button
-                          type="button"
-                          disabled={
-                            character.attributes[
-                              attribute.id as keyof typeof character.attributes
-                            ] >= 3 || attributePointsRemaining <= 0
-                          }
-                          onClick={() =>
-                            updateAttribute(
-                              attribute.id,
-                              Math.min(
-                                3,
-                                character.attributes[
-                                  attribute.id as keyof typeof character.attributes
-                                ] + 1
-                              )
-                            )
-                          }
-                          style={{
-                            width: '2.5rem',
-                            height: '2.5rem',
-                            borderRadius: '0.375rem',
-                            backgroundColor: 'var(--color-dark-elevated)',
-                            color: 'var(--color-white)',
-                            border: 'none',
-                            cursor:
-                              character.attributes[
-                                attribute.id as keyof typeof character.attributes
-                              ] >= 3 || attributePointsRemaining <= 0
-                                ? 'not-allowed'
-                                : 'pointer',
-                            opacity:
-                              character.attributes[
-                                attribute.id as keyof typeof character.attributes
-                              ] >= 3 || attributePointsRemaining <= 0
-                                ? 0.5
-                                : 1,
-                          }}
-                        >
-                          +
-                        </button>
-
-                        <div
-                          style={{
-                            position: 'relative',
-                            height: '0.75rem',
-                            backgroundColor: 'var(--color-dark-elevated)',
-                            borderRadius: '0.375rem',
-                            flex: 1,
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              height: '100%',
-                              width: `${(character.attributes[attribute.id as keyof typeof character.attributes] / 3) * 100}%`,
-                              backgroundColor: 'var(--color-sat-purple)',
-                              borderRadius: '0.375rem',
-                              transition: 'width 0.3s',
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Show related skills */}
-                      <div
-                        style={{
-                          marginTop: '0.5rem',
-                          paddingLeft: '0.5rem',
-                          borderLeft: '2px solid var(--color-dark-border)',
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: 'var(--color-cloud)',
-                            fontSize: '0.875rem',
-                            marginBottom: '0.5rem',
-                          }}
-                        >
-                          Related skills:
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          {ATTRIBUTE_SKILLS[attribute.id as keyof typeof ATTRIBUTE_SKILLS].map(
-                            (skill) => (
-                              <div
-                                key={skill.id}
-                                style={{
-                                  backgroundColor: 'var(--color-dark-elevated)',
-                                  padding: '0.25rem 0.75rem',
-                                  borderRadius: '9999px',
-                                  fontSize: '0.75rem',
-                                  color: 'var(--color-white)',
-                                }}
-                              >
-                                {skill.name} (
-                                {
-                                  character.attributes[
-                                    attribute.id as keyof typeof character.attributes
-                                  ]
-                                }{' '}
-                                dice)
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div
-                  style={{
-                    backgroundColor: 'var(--color-dark-elevated)',
-                    borderRadius: '0.5rem',
-                    padding: '1.5rem',
-                    marginTop: '2rem',
-                  }}
-                >
-                  <h3
-                    style={{
-                      color: 'var(--color-metal-gold)',
-                      fontWeight: 'bold',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Dice System
-                  </h3>
-                  <p style={{ color: 'var(--color-cloud)' }}>
-                    For skill checks, you'll roll a number of dice equal to your attribute value
-                    (1-3). Each skill has a die type from 1d4 to 1d20 that you'll set in the next
-                    step.
-                  </p>
-                </div>
-              </div>
+              <AttributesTab 
+                attributes={character.attributes}
+                attributePointsRemaining={attributePointsRemaining}
+                onUpdateAttribute={updateAttribute}
+              />
             )}
 
             {/* Step 3: Talents */}
             {step === 3 && (
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  <h2
-                    style={{
-                      color: 'var(--color-white)',
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    Talents & Specialized Skills
-                  </h2>
-                  <div
-                    style={{
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.375rem',
-                      color:
-                        talentStarsRemaining > 0 ? 'var(--color-metal-gold)' : 'var(--color-white)',
-                    }}
-                  >
-                    Talent Stars: <span style={{ fontWeight: 'bold' }}>{talentStarsRemaining}</span>
-                  </div>
-                </div>
-
-                <p
-                  style={{
-                    color: 'var(--color-cloud)',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  Assign talent stars to specialized skills that don't depend on attributes. Ranged
-                  and Melee weapons start with 1 talent star by default.
-                </p>
-
-                {/* Weapon Skills */}
-                <div>
-                  <h3
-                    style={{
-                      color: 'var(--color-white)',
-                      fontSize: '1.25rem',
-                      fontWeight: 'bold',
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    Weapon Skills
-                  </h3>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    {SPECIALIZED_SKILLS.map((skill) => (
-                      <div
-                        key={skill.id}
-                        style={{
-                          backgroundColor: 'var(--color-dark-elevated)',
-                          padding: '0.75rem 1rem',
-                          borderRadius: '0.5rem',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: 'var(--color-white)',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {skill.name}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                          {[1, 2, 3].map((talentPosition) => {
-                            const isFilled =
-                              character.weaponSkills[
-                                skill.id as keyof typeof character.weaponSkills
-                              ].talent >= talentPosition;
-
-                            // Determine if this is the first star (position 1)
-                            const isFirstStar = talentPosition === 1;
-
-                            // Calculate if this star can be toggled based on current talent and available stars
-                            // First star (position 1) for weapon skills can't be toggled off
-                            const canToggleOn =
-                              !isFilled &&
-                              character.weaponSkills[
-                                skill.id as keyof typeof character.weaponSkills
-                              ].talent ===
-                                talentPosition - 1 &&
-                              talentStarsRemaining > 0;
-                            const canToggleOff =
-                              isFilled &&
-                              talentPosition ===
-                                character.weaponSkills[
-                                  skill.id as keyof typeof character.weaponSkills
-                                ].talent &&
-                              !isFirstStar;
-
-                            return (
-                              <button
-                                key={talentPosition}
-                                onClick={() => {
-                                  if (isFilled && canToggleOff) {
-                                    // If star is filled and it's the highest filled star (and not the first star), turn it off
-                                    updateSpecializedSkillTalent(skill.id, talentPosition - 1);
-                                  } else if (!isFilled && canToggleOn) {
-                                    // If star is empty and it's the next one in sequence, turn it on
-                                    updateSpecializedSkillTalent(skill.id, talentPosition);
-                                  }
-                                }}
-                                disabled={!canToggleOn && !canToggleOff}
-                                style={{
-                                  width: '1.5rem',
-                                  height: '1.5rem',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  backgroundColor: 'transparent',
-                                  border: 'none',
-                                  cursor: canToggleOn || canToggleOff ? 'pointer' : 'default',
-                                  opacity: canToggleOn || canToggleOff || isFilled ? 1 : 0.5,
-                                  color: isFilled
-                                    ? 'var(--color-metal-gold)'
-                                    : 'var(--color-dark-surface)',
-                                  fontSize: '1.25rem',
-                                }}
-                                aria-label={`Set talent to ${talentPosition}`}
-                              >
-                                {/* Star symbol */}
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 24 24"
-                                  fill={isFilled ? 'currentColor' : 'none'}
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                </svg>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Crafting Skills */}
-                <div style={{ marginTop: '2rem' }}>
-                  <h3
-                    style={{
-                      color: 'var(--color-white)',
-                      fontSize: '1.25rem',
-                      fontWeight: 'bold',
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    Crafting Skills
-                  </h3>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    {CRAFTING_SKILLS.map((skill) => (
-                      <div
-                        key={skill.id}
-                        style={{
-                          backgroundColor: 'var(--color-dark-elevated)',
-                          padding: '0.75rem 1rem',
-                          borderRadius: '0.5rem',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: 'var(--color-white)',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {skill.name}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                          {[1, 2, 3].map((talentPosition) => {
-                            const isFilled =
-                              character.craftingSkills[
-                                skill.id as keyof typeof character.craftingSkills
-                              ].talent >= talentPosition;
-                            // Calculate if this star can be toggled based on current talent and available stars
-                            const canToggleOn =
-                              !isFilled &&
-                              character.craftingSkills[
-                                skill.id as keyof typeof character.craftingSkills
-                              ].talent ===
-                                talentPosition - 1 &&
-                              talentStarsRemaining > 0;
-                            const canToggleOff =
-                              isFilled &&
-                              talentPosition ===
-                                character.craftingSkills[
-                                  skill.id as keyof typeof character.craftingSkills
-                                ].talent;
-
-                            return (
-                              <button
-                                key={talentPosition}
-                                onClick={() => {
-                                  if (isFilled && canToggleOff) {
-                                    // If star is filled and it's the highest filled star, turn it off
-                                    updateCraftingSkillTalent(skill.id, talentPosition - 1);
-                                  } else if (!isFilled && canToggleOn) {
-                                    // If star is empty and it's the next one in sequence, turn it on
-                                    updateCraftingSkillTalent(skill.id, talentPosition);
-                                  }
-                                }}
-                                disabled={!canToggleOn && !canToggleOff}
-                                style={{
-                                  width: '1.5rem',
-                                  height: '1.5rem',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  backgroundColor: 'transparent',
-                                  border: 'none',
-                                  cursor: canToggleOn || canToggleOff ? 'pointer' : 'default',
-                                  opacity: canToggleOn || canToggleOff || isFilled ? 1 : 0.5,
-                                  color: isFilled
-                                    ? 'var(--color-metal-gold)'
-                                    : 'var(--color-dark-surface)',
-                                  fontSize: '1.25rem',
-                                }}
-                                aria-label={`Set talent to ${talentPosition}`}
-                              >
-                                {/* Star symbol */}
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 24 24"
-                                  fill={isFilled ? 'currentColor' : 'none'}
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                </svg>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    backgroundColor: 'var(--color-dark-elevated)',
-                    borderRadius: '0.5rem',
-                    padding: '1.5rem',
-                    marginTop: '2rem',
-                  }}
-                >
-                  <h3
-                    style={{
-                      color: 'var(--color-metal-gold)',
-                      fontWeight: 'bold',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Talent System
-                  </h3>
-                  <p style={{ color: 'var(--color-cloud)' }}>
-                    Each talent star represents a die you roll when using that skill. For example,
-                    if you have 2 talent stars in Ranged Weapons, you'll roll 2 dice for ranged
-                    weapon checks.
-                  </p>
-                </div>
-              </div>
+              <TalentsTab 
+                weaponSkills={character.weaponSkills}
+                craftingSkills={character.craftingSkills}
+                talentStarsRemaining={talentStarsRemaining}
+                onUpdateSpecializedSkillTalent={updateSpecializedSkillTalent}
+                onUpdateCraftingSkillTalent={updateCraftingSkillTalent}
+              />
             )}
+
             {/* Step 4: Traits */}
             {step === 4 && (
-              <div>
-                <h2
-                  style={{
-                    color: 'var(--color-white)',
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  Character Traits
-                </h2>
-
-                <TraitSelection
-                  selectedTraits={selectedTraits}
-                  onSelectTrait={handleSelectTrait}
-                  onDeselectTrait={handleDeselectTrait}
-                  availableModulePoints={
-                    character.modulePoints.total - character.modulePoints.spent
-                  }
-                />
-              </div>
+              <TraitsCreatorTab 
+                selectedTraits={selectedTraits}
+                availableModulePoints={character.modulePoints.total - character.modulePoints.spent}
+                onSelectTrait={handleSelectTrait}
+                onDeselectTrait={handleDeselectTrait}
+              />
             )}
 
             {/* Step 5: Background */}
             {step === 5 && (
-              <div>
-                <h2
-                  style={{
-                    color: 'var(--color-white)',
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  Character Background
-                </h2>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div
-                    style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}
-                  >
-                    <div>
-                      <label
-                        style={{
-                          display: 'block',
-                          color: 'var(--color-cloud)',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        Height
-                      </label>
-                      <input
-                        type="text"
-                        style={{
-                          width: '100%',
-                          backgroundColor: 'var(--color-dark-elevated)',
-                          color: 'var(--color-white)',
-                          border: '1px solid var(--color-dark-border)',
-                          borderRadius: '0.375rem',
-                          padding: '0.5rem 0.75rem',
-                        }}
-                        value={character.physicalTraits.height}
-                        onChange={(e) =>
-                          updateNestedField('physicalTraits', 'height', e.target.value)
-                        }
-                        placeholder="E.g. 6'2"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        style={{
-                          display: 'block',
-                          color: 'var(--color-cloud)',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        Weight
-                      </label>
-                      <input
-                        type="text"
-                        style={{
-                          width: '100%',
-                          backgroundColor: 'var(--color-dark-elevated)',
-                          color: 'var(--color-white)',
-                          border: '1px solid var(--color-dark-border)',
-                          borderRadius: '0.375rem',
-                          padding: '0.5rem 0.75rem',
-                        }}
-                        value={character.physicalTraits.weight}
-                        onChange={(e) =>
-                          updateNestedField('physicalTraits', 'weight', e.target.value)
-                        }
-                        placeholder="E.g. 180 lbs"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      color: 'var(--color-cloud)',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Gender
-                  </label>
-                  <input
-                    type="text"
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      color: 'var(--color-white)',
-                      border: '1px solid var(--color-dark-border)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                    }}
-                    value={character.physicalTraits.gender}
-                    onChange={(e) => updateNestedField('physicalTraits', 'gender', e.target.value)}
-                    placeholder="Enter gender (optional)"
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      color: 'var(--color-cloud)',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Appearance
-                  </label>
-                  <textarea
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      color: 'var(--color-white)',
-                      border: '1px solid var(--color-dark-border)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      height: '6rem',
-                    }}
-                    value={character.appearance}
-                    onChange={(e) => updateCharacter('appearance', e.target.value)}
-                    placeholder="Describe your character's appearance, clothing, and distinctive features..."
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      color: 'var(--color-cloud)',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Biography
-                  </label>
-                  <textarea
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'var(--color-dark-elevated)',
-                      color: 'var(--color-white)',
-                      border: '1px solid var(--color-dark-border)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      height: '10rem',
-                    }}
-                    value={character.biography}
-                    onChange={(e) => updateCharacter('biography', e.target.value)}
-                    placeholder="Write your character's backstory, motivations, and goals..."
-                  />
-                </div>
-
-                <div
-                  style={{
-                    backgroundColor: 'var(--color-dark-elevated)',
-                    borderRadius: '0.5rem',
-                    padding: '1.5rem',
-                    marginTop: '2rem',
-                  }}
-                >
-                  <h3
-                    style={{
-                      color: 'var(--color-metal-gold)',
-                      fontWeight: 'bold',
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    Character Summary
-                  </h3>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Name</div>
-                    <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                      {character.name || 'Unnamed'}
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>Race</div>
-                    <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                      {character.race || 'Not selected'}
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>
-                      Level
-                    </div>
-                    <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                      {character.level} ({character.modulePoints.total} Module Points)
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ color: 'var(--color-cloud)', marginBottom: '0.25rem' }}>
-                      Key Attributes
-                    </div>
-                    <div style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                      {Object.entries(character.attributes)
-                        .sort(([, a], [, b]) => b - a)
-                        .slice(0, 2)
-                        .map(
-                          ([key, value]) =>
-                            `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-                        )
-                        .join(', ')}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <BackgroundCreatorTab 
+                physicalTraits={character.physicalTraits}
+                appearance={character.appearance}
+                biography={character.biography}
+                name={character.name}
+                race={character.race}
+                level={character.level}
+                modulePoints={character.modulePoints}
+                attributes={character.attributes}
+                onUpdatePhysicalTrait={(trait, value) => 
+                  updateNestedField('physicalTraits', trait, value)
+                }
+                onUpdateAppearance={(value) => updateCharacter('appearance', value)}
+                onUpdateBiography={(value) => updateCharacter('biography', value)}
+              />
             )}
 
             {/* Navigation buttons */}
