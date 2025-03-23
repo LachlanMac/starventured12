@@ -1,13 +1,13 @@
 import React, { ReactNode } from 'react';
 
 interface CardProps {
-    className?: string;
-    children: ReactNode;
-    variant?: 'default' | 'elevated' | 'bordered' | 'glass';
-    onClick?: () => void;
-    hoverEffect?: boolean;
-    style?: React.CSSProperties; 
-  }
+  className?: string;
+  children: ReactNode;
+  variant?: 'default' | 'elevated' | 'bordered' | 'glass';
+  onClick?: () => void;
+  hoverEffect?: boolean;
+  style?: React.CSSProperties;
+}
 const Card: React.FC<CardProps> = ({
   className = '',
   children,
@@ -18,16 +18,16 @@ const Card: React.FC<CardProps> = ({
 }) => {
   // Base classes
   let cardClasses = 'rounded-lg overflow-hidden transition-all duration-200';
-  
+
   // Interactive props
   const interactive = onClick ? 'cursor-pointer' : '';
-  
+
   // Hover effect class
   const hoverClasses = hoverEffect ? 'hover-lift' : '';
-  
+
   // Combine classes
   cardClasses = `${cardClasses} ${interactive} ${hoverClasses} ${className}`;
-  
+
   // Get variant styles
   const getVariantStyle = () => {
     switch (variant) {
@@ -58,15 +58,11 @@ const Card: React.FC<CardProps> = ({
         return {};
     }
   };
-  
+
   const variantStyle = getVariantStyle();
-  
+
   return (
-    <div 
-      className={cardClasses} 
-      onClick={onClick}
-      style={{ ...variantStyle, ...style }}
-    >
+    <div className={cardClasses} onClick={onClick} style={{ ...variantStyle, ...style }}>
       {children}
     </div>
   );
@@ -75,16 +71,12 @@ const Card: React.FC<CardProps> = ({
 interface CardHeaderProps {
   className?: string;
   children: ReactNode;
-  style?: React.CSSProperties; 
+  style?: React.CSSProperties;
 }
 
-export const CardHeader: React.FC<CardHeaderProps> = ({
-  className = '',
-  children,
-  style,
-}) => {
+export const CardHeader: React.FC<CardHeaderProps> = ({ className = '', children, style }) => {
   return (
-    <div 
+    <div
       className={`p-4 ${className}`}
       style={{
         borderBottom: '1px solid var(--color-dark-border)',
@@ -102,15 +94,8 @@ interface CardBodyProps {
   children: ReactNode;
 }
 
-export const CardBody: React.FC<CardBodyProps> = ({
-  className = '',
-  children,
-}) => {
-  return (
-    <div className={`p-5 ${className}`}>
-      {children}
-    </div>
-  );
+export const CardBody: React.FC<CardBodyProps> = ({ className = '', children }) => {
+  return <div className={`p-5 ${className}`}>{children}</div>;
 };
 
 interface CardFooterProps {
@@ -118,12 +103,9 @@ interface CardFooterProps {
   children: ReactNode;
 }
 
-export const CardFooter: React.FC<CardFooterProps> = ({
-  className = '',
-  children,
-}) => {
+export const CardFooter: React.FC<CardFooterProps> = ({ className = '', children }) => {
   return (
-    <div 
+    <div
       className={`p-4 ${className}`}
       style={{
         borderTop: '1px solid var(--color-dark-border)',

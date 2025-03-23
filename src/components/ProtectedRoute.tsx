@@ -8,13 +8,15 @@ const ProtectedRoute: React.FC = () => {
   if (loading) {
     // You could render a loading spinner here
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-dark-base)'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          backgroundColor: 'var(--color-dark-base)',
+        }}
+      >
         <div className="loading-spinner"></div>
       </div>
     );

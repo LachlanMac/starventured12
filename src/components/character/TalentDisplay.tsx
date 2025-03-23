@@ -8,18 +8,21 @@ interface TalentDisplayProps {
 }
 
 // Component to display talent stars
-const TalentDisplay: React.FC<TalentDisplayProps> = ({ 
-  talent, 
-  maxTalent = 3, 
+const TalentDisplay: React.FC<TalentDisplayProps> = ({
+  talent,
+  maxTalent = 3,
   showNumber = false,
-  size = 'md'
+  size = 'md',
 }) => {
   // Get star size based on the size prop
   const getStarSize = () => {
     switch (size) {
-      case 'sm': return '0.75rem';
-      case 'lg': return '1.25rem';
-      default: return '1rem';
+      case 'sm':
+        return '0.75rem';
+      case 'lg':
+        return '1.25rem';
+      default:
+        return '1rem';
     }
   };
 
@@ -28,15 +31,17 @@ const TalentDisplay: React.FC<TalentDisplayProps> = ({
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
       {showNumber && (
-        <span style={{ 
-          color: 'var(--color-cloud)',
-          fontSize: size === 'sm' ? '0.75rem' : '0.875rem',
-          marginRight: '0.25rem'
-        }}>
+        <span
+          style={{
+            color: 'var(--color-cloud)',
+            fontSize: size === 'sm' ? '0.75rem' : '0.875rem',
+            marginRight: '0.25rem',
+          }}
+        >
           {talent}
         </span>
       )}
-      
+
       <div style={{ display: 'flex', gap: '0.25rem' }}>
         {Array.from({ length: maxTalent }).map((_, i) => (
           <div
@@ -45,8 +50,9 @@ const TalentDisplay: React.FC<TalentDisplayProps> = ({
               width: starSize,
               height: starSize,
               borderRadius: '50%',
-              backgroundColor: i < talent ? 'var(--color-metal-gold)' : 'var(--color-dark-elevated)',
-              border: '1px solid var(--color-metal-gold)'
+              backgroundColor:
+                i < talent ? 'var(--color-metal-gold)' : 'var(--color-dark-elevated)',
+              border: '1px solid var(--color-metal-gold)',
             }}
           />
         ))}

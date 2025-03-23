@@ -24,7 +24,7 @@ const Characters: React.FC = () => {
         setLoading(true);
         // In a real app, this would call your API
         // const response = await fetch('/api/characters?userId=test-user-id');
-        
+
         // Mock data for development
         const mockCharacters: Character[] = [
           {
@@ -33,7 +33,7 @@ const Characters: React.FC = () => {
             species: 'Human',
             level: 3,
             background: 'Explorer',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
           },
           {
             _id: '2',
@@ -41,7 +41,7 @@ const Characters: React.FC = () => {
             species: 'Android',
             level: 2,
             background: 'Engineer',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
           },
           {
             _id: '3',
@@ -49,7 +49,7 @@ const Characters: React.FC = () => {
             species: 'Alien',
             level: 4,
             background: 'Rogue',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
           },
           {
             _id: '4',
@@ -57,10 +57,10 @@ const Characters: React.FC = () => {
             species: 'Human',
             level: 2,
             background: 'Scientist',
-            createdAt: new Date().toISOString()
-          }
+            createdAt: new Date().toISOString(),
+          },
         ];
-        
+
         setCharacters(mockCharacters);
         setLoading(false);
       } catch (err) {
@@ -104,14 +104,16 @@ const Characters: React.FC = () => {
 
   if (error) {
     return (
-      <div style={{ 
-        padding: '2rem',
-        backgroundColor: 'rgba(152, 94, 109, 0.2)',
-        borderRadius: '0.5rem',
-        border: '1px solid var(--color-sunset)',
-        color: 'var(--color-white)',
-        textAlign: 'center'
-      }}>
+      <div
+        style={{
+          padding: '2rem',
+          backgroundColor: 'rgba(152, 94, 109, 0.2)',
+          borderRadius: '0.5rem',
+          border: '1px solid var(--color-sunset)',
+          color: 'var(--color-white)',
+          textAlign: 'center',
+        }}
+      >
         <h2 style={{ marginBottom: '1rem' }}>Error</h2>
         <p>{error}</p>
         <div style={{ marginTop: '1rem' }}>
@@ -125,61 +127,96 @@ const Characters: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ 
-          color: 'var(--color-white)',
-          fontFamily: 'var(--font-display)',
-          fontSize: '2.5rem',
-          fontWeight: 'bold'
-        }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '2rem',
+        }}
+      >
+        <h1
+          style={{
+            color: 'var(--color-white)',
+            fontFamily: 'var(--font-display)',
+            fontSize: '2.5rem',
+            fontWeight: 'bold',
+          }}
+        >
           Your Characters
         </h1>
         <Link to="/characters/create">
-          <Button variant="accent" rightIcon={
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-              <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-            </svg>
-          }>
+          <Button
+            variant="accent"
+            rightIcon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="w-5 h-5"
+              >
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+              </svg>
+            }
+          >
             Create New
           </Button>
         </Link>
       </div>
 
       {characters.length === 0 ? (
-        <div style={{
-          backgroundColor: 'var(--color-dark-surface)',
-          borderRadius: '0.5rem',
-          padding: '3rem',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1.5rem'
-        }}>
-          <div style={{
-            width: '4rem',
-            height: '4rem',
-            borderRadius: '50%',
-            backgroundColor: 'var(--color-stormy)',
+        <div
+          style={{
+            backgroundColor: 'var(--color-dark-surface)',
+            borderRadius: '0.5rem',
+            padding: '3rem',
+            textAlign: 'center',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            justifyContent: 'center',
+            gap: '1.5rem',
+          }}
+        >
+          <div
+            style={{
+              width: '4rem',
+              height: '4rem',
+              borderRadius: '50%',
+              backgroundColor: 'var(--color-stormy)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-8 h-8"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+              />
             </svg>
           </div>
-          <h2 style={{ 
-            color: 'var(--color-white)',
-            fontFamily: 'var(--font-display)',
-            fontSize: '1.5rem',
-            fontWeight: 'bold'
-          }}>
+          <h2
+            style={{
+              color: 'var(--color-white)',
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+            }}
+          >
             No Characters Found
           </h2>
           <p style={{ color: 'var(--color-cloud)', maxWidth: '400px', margin: '0 auto' }}>
-            You haven't created any characters yet. Start your adventure by creating your first character.
+            You haven't created any characters yet. Start your adventure by creating your first
+            character.
           </p>
           <Link to="/characters/create">
             <Button variant="accent">Create Your First Character</Button>
@@ -188,13 +225,13 @@ const Characters: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {characters.map((character) => (
-            <Link 
-              key={character._id} 
+            <Link
+              key={character._id}
               to={`/characters/${character._id}`}
               style={{ textDecoration: 'none' }}
             >
-              <div 
-                className="hover-lift" 
+              <div
+                className="hover-lift"
                 style={{
                   backgroundColor: 'var(--color-dark-surface)',
                   borderRadius: '0.5rem',
@@ -203,84 +240,94 @@ const Characters: React.FC = () => {
                   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                 }}
               >
-                <div style={{
-                  background: getSpeciesColor(character.species),
-                  padding: '1.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem'
-                }}>
-                  <div style={{
-                    width: '3.5rem',
-                    height: '3.5rem',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--color-dark-surface)',
+                <div
+                  style={{
+                    background: getSpeciesColor(character.species),
+                    padding: '1.5rem',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: 'var(--color-white)',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-                  }}>
+                    gap: '1rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '3.5rem',
+                      height: '3.5rem',
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--color-dark-surface)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      color: 'var(--color-white)',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    }}
+                  >
                     {getInitial(character.name)}
                   </div>
                   <div>
-                    <h3 style={{
-                      color: 'var(--color-white)',
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '1.25rem',
-                      fontWeight: 'bold',
-                      marginBottom: '0.25rem'
-                    }}>
+                    <h3
+                      style={{
+                        color: 'var(--color-white)',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '1.25rem',
+                        fontWeight: 'bold',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
                       {character.name}
                     </h3>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <span style={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                        color: 'var(--color-white)',
-                        fontSize: '0.75rem',
-                        padding: '0.125rem 0.5rem',
-                        borderRadius: '9999px'
-                      }}>
+                      <span
+                        style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                          color: 'var(--color-white)',
+                          fontSize: '0.75rem',
+                          padding: '0.125rem 0.5rem',
+                          borderRadius: '9999px',
+                        }}
+                      >
                         {character.species}
                       </span>
-                      <span style={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                        color: 'var(--color-white)',
-                        fontSize: '0.75rem',
-                        padding: '0.125rem 0.5rem',
-                        borderRadius: '9999px'
-                      }}>
+                      <span
+                        style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                          color: 'var(--color-white)',
+                          fontSize: '0.75rem',
+                          padding: '0.125rem 0.5rem',
+                          borderRadius: '9999px',
+                        }}
+                      >
                         Level {character.level}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div style={{ padding: '1rem' }}>
-                  <div style={{ 
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ color: 'var(--color-cloud)' }}>
-                      {character.background}
-                    </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span style={{ color: 'var(--color-cloud)' }}>{character.background}</span>
                     <button
                       className="flex items-center justify-center w-8 h-8 rounded-full"
                       style={{
                         backgroundColor: 'var(--color-dark-elevated)',
                         color: 'var(--color-white)',
                         border: 'none',
-                        transition: 'background-color 0.2s ease'
+                        transition: 'background-color 0.2s ease',
                       }}
-                      onMouseOver={(e) => { 
+                      onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = 'var(--color-stormy)';
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                       }}
-                      onMouseOut={(e) => { 
+                      onMouseOut={(e) => {
                         e.currentTarget.style.backgroundColor = 'var(--color-dark-elevated)';
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                       }}
                       onClick={(e) => {
                         e.preventDefault();
@@ -288,8 +335,19 @@ const Characters: React.FC = () => {
                         window.location.href = `/characters/${character._id}`;
                       }}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                        />
                       </svg>
                     </button>
                   </div>

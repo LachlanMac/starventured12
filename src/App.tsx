@@ -37,32 +37,91 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          minHeight: '100vh',
-          backgroundColor: 'var(--color-dark-base)' 
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100vh',
+            backgroundColor: 'var(--color-dark-base)',
+          }}
+        >
           {/* Background with stars effect */}
           <div className="stars fixed inset-0" aria-hidden="true"></div>
-          
+
           {/* Main content */}
-          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '100vh',
+            }}
+          >
             <Routes>
               {/* Public routes with layout */}
-              <Route path="/" element={<MainLayout><Home /></MainLayout>} />
-              <Route path="/campaigns" element={<MainLayout><Campaigns /></MainLayout>} />
-              <Route path="/characters" element={<MainLayout><Characters /></MainLayout>} />
-              <Route path="/modules" element={<MainLayout><ModuleBrowser /></MainLayout>} />
-              
+              <Route
+                path="/"
+                element={
+                  <MainLayout>
+                    <Home />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/campaigns"
+                element={
+                  <MainLayout>
+                    <Campaigns />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/characters"
+                element={
+                  <MainLayout>
+                    <Characters />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/modules"
+                element={
+                  <MainLayout>
+                    <ModuleBrowser />
+                  </MainLayout>
+                }
+              />
+
               {/* Login page (no layout) */}
               <Route path="/login" element={<Login />} />
-              
+
               {/* Protected routes with layout */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/characters/create" element={<MainLayout><CharacterCreate /></MainLayout>} />
-                <Route path="/characters/:id" element={<MainLayout><CharacterView /></MainLayout>} />
-                <Route path="/characters/:id/modules" element={<MainLayout><ModulesPage /></MainLayout>} />
+                <Route
+                  path="/characters/create"
+                  element={
+                    <MainLayout>
+                      <CharacterCreate />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/characters/:id"
+                  element={
+                    <MainLayout>
+                      <CharacterView />
+                    </MainLayout>
+                  }
+                />
+                <Route
+                  path="/characters/:id/modules"
+                  element={
+                    <MainLayout>
+                      <ModulesPage />
+                    </MainLayout>
+                  }
+                />
                 {/* Add other protected routes here */}
               </Route>
             </Routes>

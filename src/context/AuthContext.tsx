@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   login: () => {},
-  logout: () => {}
+  logout: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -38,11 +38,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       try {
         const response = await fetch('/api/auth/me', {
-          credentials: 'include' // Important for cookies
+          credentials: 'include', // Important for cookies
         });
-        
+
         const data = await response.json();
-        
+
         if (data.authenticated) {
           setIsAuthenticated(true);
           setUser(data.user);
@@ -71,9 +71,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', {
-        credentials: 'include'
+        credentials: 'include',
       });
-      
+
       setIsAuthenticated(false);
       setUser(null);
     } catch (error) {
