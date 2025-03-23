@@ -1,10 +1,11 @@
 {
     "name": "Zssesh",
     "ruleset": 0,
+    "description":"",
     "options": [
       {
-        "name": "Reptilian",
-        "description": "The Zssesh carry phenotypes from the ancestors on their homeworld. Gain +2 ",
+        "name": "Reptilian Lineage",
+        "description": "The Zssesh carry phenotypes from the ancestors on their homeworld which grants them innate regeneration. You gain 2 extra health and regenerate any missing limbs after a full rest.",
         "location": "1",
         "data": "AS3=1:ASH=1"
       },

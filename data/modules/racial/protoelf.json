@@ -1,10 +1,11 @@
 {
   "name": "Protoelf",
   "ruleset": 0,
+  "description":"",
   "options": [
     {
-      "name": "Acrobat",
-      "description": "Gain +1 Acrobatics and +1 Initiative.",
+      "name": "Photosynthetic",
+      "description": "Protoelves are marked by unique patterns of photosynthesizing receptors that are capable of absorbing simulated or natural sunlight which strengthens their bodies and provides nutrients, granting them +1 tier in Might and Fitness. However, if the protoelf goes a full day without being exposed to light, the following day, all skills under the Physique attribute are rolled as a single 1d4.",
       "location": "1",
       "data": "AS3=1:ASH=1"
     },

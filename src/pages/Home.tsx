@@ -4,15 +4,13 @@ import { Link } from 'react-router-dom';
 const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-space-dark relative overflow-hidden">
-      {/* Stars effect */}
       <div className="stars absolute inset-0 z-0">
-        {/* In a real app, you'd implement stars animation with CSS */}
       </div>
       
       <div className="container mx-auto px-4 py-16 relative z-10">
         <header className="text-center mb-16">
           <h1 className="text-6xl font-display font-bold mb-4 text-space-highlight">
-          StarVentureD12
+          StarVenture
           </h1>
           <p className="text-xl max-w-2xl mx-auto text-gray-300">
             Embark on an epic tabletop role-playing adventure across the cosmos.

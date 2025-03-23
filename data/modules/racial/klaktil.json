@@ -1,13 +1,13 @@
 {
-    "name": "Jhen", 
-    "description":"",
+    "name": "Klaktil",
+    "description":"Klaktils are an insectoid species that resemble bi-pedal ants, ranging in size from 1 to 3 meters. They have chitinous exteriors, and large, multi-faceted eyes.",
     "ruleset": 0,
     "options": [
       {
-        "name": "Adaptable",
-        "description": "The Jhen come from an unforgiving homeworld with a star that gives off large quantities of radiation and a planet with high gravity, granting them immunity to Radiation and +2 Health.",
+        "name": "Impervious Synapses",
+        "description": "The Klaktil's mind is uniquely structured, granting them an immunity to mental damage. However, they cannot utilize psionic powers.",
         "location": "1",
-        "data": "AS3=1:ASH=1"
+        "data": ""
       },
       {
         "name": "Safe Fall",

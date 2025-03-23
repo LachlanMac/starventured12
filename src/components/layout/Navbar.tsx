@@ -28,7 +28,7 @@ const Navbar: React.FC = () => {
               fontWeight: 'bold',
               color: 'var(--color-metal-gold)'
             }}>
-              StarVentureD12
+              StarVenture
             </span>
           </Link>
 

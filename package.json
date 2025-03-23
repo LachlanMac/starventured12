@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "server": "node server/server.js",
     "server:dev": "nodemon server/server.js",
-    "dev:full": "concurrently \"npm run dev\" \"npm run server:dev\""
+    "kill-ports": "node server/scripts/kill-ports.js",
+    "reset-modules": "node server/scripts/resetModules.js",
+     "dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
+    "dev:clean": "npm run kill-ports && npm run reset-modules && npm run dev:full"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.14",

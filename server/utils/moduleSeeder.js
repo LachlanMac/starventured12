@@ -10,7 +10,42 @@ const __dirname = path.dirname(__filename);
 
 // Path to modules data directory
 const modulesDir = path.resolve(__dirname, '../../data/modules');
-//
+
+// Configuration flags
+const PURGE_MODULES_BEFORE_SEED = false; // Set to true to purge all modules before seeding
+const VERBOSE_LOGGING = true; // Set to false to reduce console output
+
+// Function to generate descriptions for racial modules if they don't exist
+function generateRaceDescription(raceName) {
+  switch (raceName.toLowerCase()) {
+    case 'human':
+      return 'Adaptable and innovative, humans are versatile explorers who have spread throughout the galaxy, establishing colonies and trade networks.';
+    case 'jhen':
+      return 'Amphibious beings with enhanced sensory abilities, the Jhen are naturally attuned to water environments and excel at navigation and exploration.';
+    case 'protoelf':
+      return 'Descendants of ancient genetic engineers, Protoelves have enhanced reflexes and mental capabilities along with extended lifespans.';
+    case 'vxyahlian':
+      return 'Insect-like beings with exoskeletons and heightened engineering skills, Vxyahlians are natural builders and technologists.';
+    case 'zssesh':
+      return 'Reptilian species with natural resilience to harsh environments, the Zssesh have remarkable regenerative capabilities and physical endurance.';
+    default:
+      return 'A unique species with distinctive physiological and cultural traits.';
+  }
+}
+
+// Function to purge all modules from the database
+export const purgeAllModules = async () => {
+  try {
+    console.log('Purging all modules from the database...');
+    const result = await Module.deleteMany({});
+    console.log(`Successfully purged ${result.deletedCount} modules.`);
+    return true;
+  } catch (err) {
+    console.error(`Error purging modules: ${err.message}`);
+    return false;
+  }
+};
+
 // Function to read JSON modules from the filesystem
 const readModulesFromFS = async () => {
   try {
@@ -40,6 +75,11 @@ const readModulesFromFS = async () => {
           // Ensure the module has the correct type based on directory
           moduleData.mtype = moduleType;
           
+          // Add description for racial modules if it doesn't exist
+          if (moduleType === 'racial' && !moduleData.description) {
+            moduleData.description = generateRaceDescription(moduleData.name);
+          }
+          
           modules.push(moduleData);
           moduleNames.push(moduleData.name.toLowerCase()); // Store lowercase name for case-insensitive comparison
         } catch (err) {
@@ -58,6 +98,15 @@ const readModulesFromFS = async () => {
 // Function to seed modules to the database
 export const seedModules = async () => {
   try {
+    // Optionally purge existing modules first
+    if (PURGE_MODULES_BEFORE_SEED) {
+      const purgeSuccess = await purgeAllModules();
+      if (!purgeSuccess) {
+        console.log('Skipping seed operation due to purge failure.');
+        return;
+      }
+    }
+    
     // Read modules from the filesystem
     const { modules: moduleData, moduleNames } = await readModulesFromFS();
     
@@ -75,7 +124,9 @@ export const seedModules = async () => {
       
       if (existingModule) {
         // Update existing module without changing _id
-        console.log(`Updating existing module: ${data.name}`);
+        if (VERBOSE_LOGGING) {
+          console.log(`Updating existing module: ${data.name}`);
+        }
         
         await Module.updateOne(
           { _id: existingModule._id },
@@ -83,13 +134,16 @@ export const seedModules = async () => {
             $set: {
               mtype: data.mtype,
               ruleset: data.ruleset,
-              options: data.options
+              options: data.options,
+              description: data.description || existingModule.description
             }
           }
         );
       } else {
         // Create new module
-        console.log(`Creating new module: ${data.name}`);
+        if (VERBOSE_LOGGING) {
+          console.log(`Creating new module: ${data.name}`);
+        }
         await Module.create(data);
       }
     }
@@ -104,7 +158,9 @@ export const seedModules = async () => {
       console.log(`Deleting ${modulesToDelete.length} modules that don't exist in JSON files...`);
       
       for (const module of modulesToDelete) {
-        console.log(`Deleting module: ${module.name}`);
+        if (VERBOSE_LOGGING) {
+          console.log(`Deleting module: ${module.name}`);
+        }
         await Module.deleteOne({ _id: module._id });
       }
     } else {
@@ -134,6 +190,7 @@ export const initializeModules = async () => {
       // Create sample module
       const sampleModule = {
         name: "Acrobat",
+        description: "A specialist in movement and agility, capable of impressive feats of balance and grace.",
         ruleset: 0,
         options: [
           {
@@ -195,5 +252,32 @@ export const initializeModules = async () => {
     
   } catch (err) {
     console.error(`Error initializing modules: ${err.message}`);
+  }
+};
+
+// Function to manually purge and reseed all modules
+export const resetAndReseedModules = async () => {
+  try {
+    // Force purge regardless of flag
+    console.log('Starting complete database reset...');
+    await purgeAllModules();
+    
+    // Then seed all modules
+    console.log('Reseeding all modules...');
+    const { modules: moduleData } = await readModulesFromFS();
+    console.log(`Found ${moduleData.length} modules to seed.`);
+    
+    for (const data of moduleData) {
+      await Module.create(data);
+      if (VERBOSE_LOGGING) {
+        console.log(`Created module: ${data.name}`);
+      }
+    }
+    
+    console.log('Module reset and reseed completed successfully!');
+    return true;
+  } catch (err) {
+    console.error(`Error during reset and reseed: ${err.message}`);
+    return false;
   }
 };
