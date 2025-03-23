@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 // Define Character type
 interface Character {
   _id: string;
   name: string;
-  species: string;
+  race: string;
   level: number;
-  background: string;
+  biography: string;
   createdAt: string;
 }
 
 const Characters: React.FC = () => {
+  const { user } = useAuth();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,50 +24,22 @@ const Characters: React.FC = () => {
     const fetchCharacters = async () => {
       try {
         setLoading(true);
-        // In a real app, this would call your API
-        // const response = await fetch('/api/characters?userId=test-user-id');
+        
+        // Make API call to fetch characters for the authenticated user
+        const response = await fetch('/api/characters', {
+          credentials: 'include', // Include cookies for authentication
+        });
 
-        // Mock data for development
-        const mockCharacters: Character[] = [
-          {
-            _id: '1',
-            name: 'Commander Zara Chen',
-            species: 'Human',
-            level: 3,
-            background: 'Explorer',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            _id: '2',
-            name: 'K-9X "Rex"',
-            species: 'Android',
-            level: 2,
-            background: 'Engineer',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            _id: '3',
-            name: 'Thax Voidwalker',
-            species: 'Alien',
-            level: 4,
-            background: 'Rogue',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            _id: '4',
-            name: 'Dr. Nova Wells',
-            species: 'Human',
-            level: 2,
-            background: 'Scientist',
-            createdAt: new Date().toISOString(),
-          },
-        ];
+        if (!response.ok) {
+          throw new Error('Failed to load characters');
+        }
 
-        setCharacters(mockCharacters);
+        const data = await response.json();
+        setCharacters(data);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching characters:', err);
-        setError('Failed to load characters. Please try again later.');
+        setError(err instanceof Error ? err.message : 'Failed to load characters. Please try again later.');
         setLoading(false);
       }
     };
@@ -73,17 +47,21 @@ const Characters: React.FC = () => {
     fetchCharacters();
   }, []);
 
-  // Function to generate a gradient based on species
-  const getSpeciesColor = (species: string) => {
-    switch (species.toLowerCase()) {
+  // Function to generate a gradient based on race
+  const getRaceColor = (race: string) => {
+    switch (race?.toLowerCase()) {
       case 'human':
         return 'linear-gradient(to right, rgba(152, 94, 109, 0.7), rgba(152, 94, 109, 0.2))';
-      case 'android':
+      case 'jhen':
         return 'linear-gradient(to right, rgba(73, 78, 107, 0.7), rgba(73, 78, 107, 0.2))';
-      case 'alien':
+      case 'protoelf':
         return 'linear-gradient(to right, rgba(85, 65, 130, 0.7), rgba(85, 65, 130, 0.2))';
-      case 'mutant':
+      case 'klaktil':
+        return 'linear-gradient(to right, rgba(25, 34, 49, 0.7), rgba(25, 34, 49, 0.2))';
+      case 'vxyahlian':
         return 'linear-gradient(to right, rgba(215, 183, 64, 0.7), rgba(215, 183, 64, 0.2))';
+      case 'zssesh':
+        return 'linear-gradient(to right, rgba(117, 127, 154, 0.7), rgba(117, 127, 154, 0.2))';
       default:
         return 'linear-gradient(to right, rgba(25, 34, 49, 0.7), rgba(25, 34, 49, 0.2))';
     }
@@ -92,6 +70,12 @@ const Characters: React.FC = () => {
   // Get the first letter of the name for the avatar placeholder
   const getInitial = (name: string) => {
     return name.charAt(0).toUpperCase();
+  };
+
+  // Get a short excerpt from biography
+  const getBiographyExcerpt = (biography: string) => {
+    if (!biography) return 'No background information';
+    return biography.length > 50 ? biography.substring(0, 50) + '...' : biography;
   };
 
   if (loading) {
@@ -242,7 +226,7 @@ const Characters: React.FC = () => {
               >
                 <div
                   style={{
-                    background: getSpeciesColor(character.species),
+                    background: getRaceColor(character.race),
                     padding: '1.5rem',
                     display: 'flex',
                     alignItems: 'center',
@@ -288,7 +272,7 @@ const Characters: React.FC = () => {
                           borderRadius: '9999px',
                         }}
                       >
-                        {character.species}
+                        {character.race}
                       </span>
                       <span
                         style={{
@@ -312,7 +296,9 @@ const Characters: React.FC = () => {
                       alignItems: 'center',
                     }}
                   >
-                    <span style={{ color: 'var(--color-cloud)' }}>{character.background}</span>
+                    <span style={{ color: 'var(--color-cloud)' }}>
+                      {getBiographyExcerpt(character.biography)}
+                    </span>
                     <button
                       className="flex items-center justify-center w-8 h-8 rounded-full"
                       style={{
