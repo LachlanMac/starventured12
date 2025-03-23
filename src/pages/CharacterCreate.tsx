@@ -173,19 +173,6 @@ const CharacterCreate: React.FC = () => {
     });
   };
 
-  // Update modulePoints and recalculate level
-  const updateModulePoints = (value: number) => {
-    const newLevel = Math.floor(value / 10);
-    setCharacter(prev => ({
-      ...prev,
-      modulePoints: {
-        ...prev.modulePoints,
-        total: value
-      },
-      level: newLevel > 0 ? newLevel : 1
-    }));
-  };
-
   // Update an attribute
   const updateAttribute = (attribute: string, newValue: number) => {
     const oldValue = character.attributes[attribute as keyof typeof character.attributes];
@@ -228,24 +215,6 @@ const CharacterCreate: React.FC = () => {
     }));
     
     setAttributePointsRemaining(prev => prev + pointDifference);
-  };
-
-  // Update skill value (dice type)
-  const updateSkillValue = (skillId: string, newValue: number) => {
-    if (newValue < 1 || newValue > 6) {
-      return; // Invalid value
-    }
-    
-    setCharacter(prev => ({
-      ...prev,
-      skills: {
-        ...prev.skills,
-        [skillId]: {
-          ...prev.skills[skillId],
-          value: newValue
-        }
-      }
-    }));
   };
 
   // Update specialized skill talent
@@ -304,25 +273,6 @@ const CharacterCreate: React.FC = () => {
     setTalentStarsRemaining(prev => prev + starDifference);
   };
 
-  // Render talent stars
-  const renderTalentStars = (talent: number, maxTalent: number = 3) => {
-    return (
-      <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
-        {Array.from({ length: maxTalent }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              width: '1rem',
-              height: '1rem',
-              borderRadius: '50%',
-              backgroundColor: i < talent ? 'var(--color-metal-gold)' : 'var(--color-dark-elevated)',
-              border: '1px solid var(--color-metal-gold)'
-            }}
-          />
-        ))}
-      </div>
-    );
-  };
 
   // Validate the current step
   const validateStep = (): boolean => {
@@ -437,8 +387,6 @@ const CharacterCreate: React.FC = () => {
         })),
       };
 
-      // In a real app, this would call your API
-      console.log("Calling API");
       const response = await fetch(`/api/characters`, {
         method: 'POST',
         headers: {
@@ -595,9 +543,6 @@ const CharacterCreate: React.FC = () => {
                   onSelectRace={(race) => updateCharacter('race', race)} 
                 />
               </div>
-
-                
-
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ 
                     display: 'block',
@@ -817,8 +762,8 @@ const CharacterCreate: React.FC = () => {
               </div>
             )}
             
-{/* Step 3: Talents */}
-{step === 3 && (
+              {/* Step 3: Talents */}
+              {step === 3 && (
               <div>
                 <div style={{ 
                   display: 'flex',
@@ -1239,7 +1184,7 @@ const CharacterCreate: React.FC = () => {
                 </Button>
               )}
               
-              {step < 4 ? (
+              {step < 5 ? (
                 <Button variant="accent" onClick={handleNextStep} style={{ marginLeft: 'auto' }}>
                   Next
                 </Button>
