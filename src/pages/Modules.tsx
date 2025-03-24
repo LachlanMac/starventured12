@@ -154,7 +154,6 @@ const ModulesPage: React.FC = () => {
     }
   };
 
-  // Handle selecting a module
   const handleSelectModule = async (moduleId: string) => {
     try {
       // Check if already selected
@@ -163,7 +162,7 @@ const ModulesPage: React.FC = () => {
         setSelectedModule(allModules.find((m) => m._id === moduleId) || null);
         return;
       }
-
+  
       // Add module to character
       const response = await fetch(`/api/characters/${characterId}/modules/${moduleId}`, {
         method: 'POST',
@@ -171,14 +170,14 @@ const ModulesPage: React.FC = () => {
           'Content-Type': 'application/json',
         },
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to add module');
       }
-
+  
       const updatedCharacter = await response.json();
       setCharacter(updatedCharacter);
-
+  
       // Show the module details
       setSelectedModule(allModules.find((m) => m._id === moduleId) || null);
     } catch (err) {
@@ -186,6 +185,7 @@ const ModulesPage: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Failed to select module');
     }
   };
+  
 
   // Handle removing a module
   const handleRemoveModule = async (moduleId: string) => {
@@ -261,14 +261,11 @@ const ModulesPage: React.FC = () => {
     }
   };
 
-  // Get option cost based on tier
   const getOptionCost = (location: string): number => {
-    const tierMatch = location.match(/^(\d+)/);
-    if (!tierMatch) return 2;
-
-    const tier = parseInt(tierMatch[1]);
-    return tier >= 5 ? 3 : 2;
+    // New simplified cost structure
+    return 1;
   };
+  
 
   // Format data string for display
   const formatDataString = (dataString: string) => {

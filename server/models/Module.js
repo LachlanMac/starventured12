@@ -77,20 +77,10 @@ ModuleSchema.methods.isOptionAvailable = function(location, selectedOptions = []
     );
   }
 };
-
-// Method to get cost of an option based on location
 ModuleSchema.methods.getOptionCost = function(location) {
-  // Default pricing rules:
-  // - Tier 1: 2 points
-  // - Tier 2-4: 2 points
-  // - Tier 5+: 3 points
-  const tier = parseInt(this.constructor.getParentLocation(location));
-  
-  if (tier >= 5) {
-    return 3;
-  } else {
-    return 2;
-  }
+  // New simplified pricing rules:
+  // All tiers and options cost 1 point
+  return 1;
 };
 
 const Module = mongoose.model('Module', ModuleSchema);

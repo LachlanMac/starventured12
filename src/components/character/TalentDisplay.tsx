@@ -42,19 +42,27 @@ const TalentDisplay: React.FC<TalentDisplayProps> = ({
       )}
 
       <div style={{ display: 'flex', gap: '0.25rem' }}>
-        {Array.from({ length: maxTalent }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              width: starSize,
-              height: starSize,
-              borderRadius: '50%',
-              backgroundColor:
-                i < talent ? 'var(--color-metal-gold)' : 'var(--color-dark-elevated)',
-              border: '1px solid var(--color-metal-gold)',
-            }}
-          />
-        ))}
+        {Array.from({ length: maxTalent }).map((_, i) => {
+          const isFilled = i < talent;
+          
+          return (
+            <div key={i} style={{ width: starSize, height: starSize }}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={starSize}
+                height={starSize}
+                viewBox="0 0 24 24"
+                fill={isFilled ? 'var(--color-metal-gold)' : 'none'}
+                stroke={isFilled ? 'none' : 'var(--color-metal-gold)'}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -12,6 +12,11 @@ interface Character {
   level: number;
   biography: string;
   createdAt: string;
+  portraitUrl?: string | null;
+  modulePoints?: {
+    total: number;
+    spent: number;
+  };
 }
 
 const Characters: React.FC = () => {
@@ -246,9 +251,22 @@ const Characters: React.FC = () => {
                       fontWeight: 'bold',
                       color: 'var(--color-white)',
                       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                      overflow: 'hidden',
                     }}
                   >
-                    {getInitial(character.name)}
+                    {character.portraitUrl ? (
+                      <img 
+                        src={character.portraitUrl} 
+                        alt={character.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    ) : (
+                      getInitial(character.name)
+                    )}
                   </div>
                   <div>
                     <h3
@@ -283,7 +301,7 @@ const Characters: React.FC = () => {
                           borderRadius: '9999px',
                         }}
                       >
-                        Level {character.level}
+                        Module Points: {character.modulePoints ? character.modulePoints.total : character.level * 10}
                       </span>
                     </div>
                   </div>

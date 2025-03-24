@@ -299,6 +299,201 @@ CharacterSchema.pre('save', function(next) {
   this.applyTraitEffects();
   next();
 });
+/**
+* Add a module to the character
+* @param {ObjectId} moduleId - The ID of the module to add
+* @returns {boolean} - True if the module was added successfully, false otherwise
+*/
+CharacterSchema.methods.addModule = async function(moduleId) {
+ try {
+   // Check if module already exists
+   if (this.modules.some(m => m.moduleId.toString() === moduleId.toString())) {
+     return false; // Module already added
+   }
+   
+   // Check if character has enough module points
+   const availablePoints = this.modulePoints.total - this.modulePoints.spent;
+   if (availablePoints < 1) {
+     return false; // Not enough points
+   }
+   
+   // Add module to character
+   this.modules.push({
+     moduleId,
+     selectedOptions: [],
+     dateAdded: Date.now()
+   });
+   
+   // Deduct points for adding the module (new simplified cost = 1)
+   this.modulePoints.spent += 1;
+   
+   return true;
+ } catch (error) {
+   console.error('Error adding module:', error);
+   return false;
+ }
+};
+
+/**
+* Select a module option
+* @param {ObjectId} moduleId - The ID of the module
+* @param {string} location - The location of the option to select
+* @returns {boolean} - True if the option was selected successfully, false otherwise
+*/
+CharacterSchema.methods.selectOption = async function(moduleId, location) {
+ try {
+   // Find the module
+   const moduleIndex = this.modules.findIndex(m => 
+     m.moduleId.toString() === moduleId.toString()
+   );
+   
+   if (moduleIndex === -1) {
+     return false; // Module not found
+   }
+   
+   // Check if option is already selected
+   if (this.modules[moduleIndex].selectedOptions.some(o => o.location === location)) {
+     return false; // Option already selected
+   }
+   
+   // Check if character has enough module points
+   const availablePoints = this.modulePoints.total - this.modulePoints.spent;
+   
+   // New simplified cost structure - all options cost 1 point
+   const optionCost = 1;
+   
+   if (availablePoints < optionCost) {
+     return false; // Not enough points
+   }
+   
+   // For first tier (location === '1'), we don't need to check prerequisites
+   // This is handled when adding the module
+   
+   // For higher tiers, we need to check if prerequisites are met
+   if (location !== '1') {
+     // Get parent tier number (e.g., "2" from "2a")
+     const tierMatch = location.match(/^(\d+)/);
+     if (!tierMatch) return false;
+     
+     const tier = parseInt(tierMatch[1]);
+     
+     // For tier 2 and above, check if prerequisites are met
+     const hasPrerequisite = this.modules[moduleIndex].selectedOptions.some(o => {
+       // If selecting a tier like "2" or "3", need a previous tier option
+       if (location.length === 1) {
+         return parseInt(o.location.charAt(0)) === tier - 1;
+       }
+       
+       // If selecting a sub-option like "2a" or "3b", need the parent tier option
+       return o.location.charAt(0) === (tier - 1).toString();
+     });
+     
+     if (!hasPrerequisite) {
+       return false; // Prerequisites not met
+     }
+   }
+   
+   // Add option to selected options
+   this.modules[moduleIndex].selectedOptions.push({
+     location,
+     selectedAt: Date.now()
+   });
+   
+   // Deduct points
+   this.modulePoints.spent += optionCost;
+   
+   return true;
+ } catch (error) {
+   console.error('Error selecting module option:', error);
+   return false;
+ }
+};
+
+/**
+* Remove a module from the character
+* @param {ObjectId} moduleId - The ID of the module to remove
+* @returns {boolean} - True if the module was removed successfully, false otherwise
+*/
+CharacterSchema.methods.removeModule = async function(moduleId) {
+ try {
+   // Find the module
+   const moduleIndex = this.modules.findIndex(m => 
+     m.moduleId.toString() === moduleId.toString()
+   );
+   
+   if (moduleIndex === -1) {
+     return false; // Module not found
+   }
+   
+   // Calculate points to refund
+   // Base cost of the module (1) + 1 for each selected option
+   const pointsToRefund = 1 + this.modules[moduleIndex].selectedOptions.length;
+   
+   // Remove module
+   this.modules.splice(moduleIndex, 1);
+   
+   // Refund points
+   this.modulePoints.spent = Math.max(0, this.modulePoints.spent - pointsToRefund);
+   
+   return true;
+ } catch (error) {
+   console.error('Error removing module:', error);
+   return false;
+ }
+};
+
+/**
+* Deselect a module option
+* @param {ObjectId} moduleId - The ID of the module
+* @param {string} location - The location of the option to deselect
+* @returns {boolean} - True if the option was deselected successfully, false otherwise
+*/
+CharacterSchema.methods.deselectOption = async function(moduleId, location) {
+ try {
+   // Find the module
+   const moduleIndex = this.modules.findIndex(m => 
+     m.moduleId.toString() === moduleId.toString()
+   );
+   
+   if (moduleIndex === -1) {
+     return false; // Module not found
+   }
+   
+   // Find the option
+   const optionIndex = this.modules[moduleIndex].selectedOptions.findIndex(o => 
+     o.location === location
+   );
+   
+   if (optionIndex === -1) {
+     return false; // Option not found
+   }
+   
+   // Check if any other options are dependent on this one
+   const tierNumber = parseInt(location.charAt(0));
+   const nextTierNumber = tierNumber + 1;
+   
+   // Check if any selected options are from the next tier (which would depend on this one)
+   const hasDependentOptions = this.modules[moduleIndex].selectedOptions.some(o => 
+     parseInt(o.location.charAt(0)) === nextTierNumber
+   );
+   
+   if (hasDependentOptions) {
+     return false; // Cannot deselect option with dependent options
+   }
+   
+   // Remove option
+   this.modules[moduleIndex].selectedOptions.splice(optionIndex, 1);
+   
+   // Refund points (1 point per option with new simplified cost structure)
+   this.modulePoints.spent = Math.max(0, this.modulePoints.spent - 1);
+   
+   return true;
+ } catch (error) {
+   console.error('Error deselecting module option:', error);
+   return false;
+ }
+};
+
 
 // Continue with the rest of the character model methods...
 CharacterSchema.methods.applyModuleEffects = async function() {

@@ -33,6 +33,8 @@ export const getModule = async (req, res) => {
   }
 };
 
+
+
 // @desc    Get modules by type
 // @route   GET /api/modules/type/:type
 // @access  Public
@@ -77,6 +79,8 @@ export const getCharacterModules = async (req, res) => {
   }
 };
 
+// Update these controller functions in server/controllers/moduleController.js
+
 // @desc    Add a module to a character
 // @route   POST /api/characters/:characterId/modules/:moduleId
 // @access  Private
@@ -99,7 +103,7 @@ export const addModuleToCharacter = async (req, res) => {
       return res.status(404).json({ message: 'Module not found' });
     }
     
-    // Add module to character
+    // Add module to character with new simplified cost structure
     const success = await character.addModule(module._id);
     
     if (!success) {
@@ -121,6 +125,49 @@ export const addModuleToCharacter = async (req, res) => {
   }
 };
 
+// @desc    Select a module option for a character
+// @route   POST /api/characters/:characterId/modules/:moduleId/options
+// @access  Private
+export const selectModuleOption = async (req, res) => {
+  try {
+    const { location } = req.body;
+    
+    if (!location) {
+      return res.status(400).json({ message: 'Option location is required' });
+    }
+    
+    const character = await Character.findById(req.params.characterId);
+    
+    if (!character) {
+      return res.status(404).json({ message: 'Character not found' });
+    }
+    
+    // Check authorization - character should belong to user
+    if (character.userId !== req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+    
+    // Select option with new simplified cost structure
+    const success = await character.selectOption(req.params.moduleId, location);
+    
+    if (!success) {
+      return res.status(400).json({ 
+        message: 'Could not select option. Check if the module exists, option is available, or if you have enough points.' 
+      });
+    }
+    
+    await character.save();
+    
+    // Return updated character with populated modules
+    const updatedCharacter = await Character.findById(character._id)
+      .populate('modules.moduleId');
+    
+    res.json(updatedCharacter);
+  } catch (error) {
+    console.error('Error selecting module option:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
 // @desc    Remove a module from a character
 // @route   DELETE /api/characters/:characterId/modules/:moduleId
 // @access  Private
@@ -157,49 +204,6 @@ export const removeModuleFromCharacter = async (req, res) => {
   }
 };
 
-// @desc    Select a module option for a character
-// @route   POST /api/characters/:characterId/modules/:moduleId/options
-// @access  Private
-export const selectModuleOption = async (req, res) => {
-  try {
-    const { location } = req.body;
-    
-    if (!location) {
-      return res.status(400).json({ message: 'Option location is required' });
-    }
-    
-    const character = await Character.findById(req.params.characterId);
-    
-    if (!character) {
-      return res.status(404).json({ message: 'Character not found' });
-    }
-    
-    // Check authorization - character should belong to user
-    if (character.userId !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-    
-    // Select option
-    const success = await character.selectOption(req.params.moduleId, location);
-    
-    if (!success) {
-      return res.status(400).json({ 
-        message: 'Could not select option. Check if the module exists, option is available, or if you have enough points.' 
-      });
-    }
-    
-    await character.save();
-    
-    // Return updated character with populated modules
-    const updatedCharacter = await Character.findById(character._id)
-      .populate('modules.moduleId');
-    
-    res.json(updatedCharacter);
-  } catch (error) {
-    console.error('Error selecting module option:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
 
 // @desc    Deselect a module option for a character
 // @route   DELETE /api/characters/:characterId/modules/:moduleId/options/:location

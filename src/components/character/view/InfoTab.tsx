@@ -45,11 +45,6 @@ interface Character {
     biosculpting: SkillData;
     synthesis: SkillData;
   };
-  resources: {
-    health: { current: number; max: number };
-    stamina: { current: number; max: number };
-    resolve: { current: number; max: number };
-  };
   languages: string[];
   stances: string[];
   modulePoints: {
@@ -103,120 +98,8 @@ const InfoTab: React.FC<InfoTabProps> = ({ character }) => {
     : 0;
   const totalModulePoints = character.modulePoints?.total || 0;
 
-
   return (
     <div className="grid grid-cols-1 gap-6">
-      {/* Character Resources */}
-      <Card variant="default">
-        <CardHeader>
-          <h2
-            style={{
-              color: 'var(--color-white)',
-              fontSize: '1.25rem',
-              fontWeight: 'bold',
-            }}
-          >
-            Resources & Details
-          </h2>
-        </CardHeader>
-        <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Health, Stamina, Resolve */}
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <span style={{ color: 'var(--color-cloud)' }}>Health</span>
-                <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                  {character.resources.health.current}/{character.resources.health.max}
-                </span>
-              </div>
-              <div className="w-full bg-evening rounded-full h-2 mb-4">
-                <div 
-                  className="bg-sunset rounded-full h-2" 
-                  style={{ 
-                    width: `${(character.resources.health.current / character.resources.health.max) * 100}%` 
-                  }}
-                ></div>
-              </div>
-
-              <div className="flex justify-between items-center mb-1">
-                <span style={{ color: 'var(--color-cloud)' }}>Stamina</span>
-                <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                  {character.resources.stamina.current}/{character.resources.stamina.max}
-                </span>
-              </div>
-              <div className="w-full bg-evening rounded-full h-2 mb-4">
-                <div 
-                  className="bg-metal-gold rounded-full h-2" 
-                  style={{ 
-                    width: `${(character.resources.stamina.current / character.resources.stamina.max) * 100}%` 
-                  }}
-                ></div>
-              </div>
-
-              <div className="flex justify-between items-center mb-1">
-                <span style={{ color: 'var(--color-cloud)' }}>Resolve</span>
-                <span style={{ color: 'var(--color-white)', fontWeight: 'bold' }}>
-                  {character.resources.resolve.current}/{character.resources.resolve.max}
-                </span>
-              </div>
-              <div className="w-full bg-evening rounded-full h-2">
-                <div 
-                  className="bg-sat-purple rounded-full h-2" 
-                  style={{ 
-                    width: `${(character.resources.resolve.current / character.resources.resolve.max) * 100}%` 
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Character Details */}
-            <div className="col-span-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                    Movement
-                  </div>
-                  <div style={{ color: 'var(--color-white)' }}>
-                    {character.movement} Units
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                    Module Points
-                  </div>
-                  <div style={{ color: 'var(--color-white)' }}>
-                    {availableModulePoints} / {totalModulePoints} (Available/Total)
-                  </div>
-                </div>
-
-                {character.languages && character.languages.length > 0 && (
-                  <div>
-                    <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                      Languages
-                    </div>
-                    <div style={{ color: 'var(--color-white)' }}>
-                      {character.languages.join(', ')}
-                    </div>
-                  </div>
-                )}
-
-                {character.stances && character.stances.length > 0 && (
-                  <div>
-                    <div style={{ color: 'var(--color-cloud)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                      Stances
-                    </div>
-                    <div style={{ color: 'var(--color-white)' }}>
-                      {character.stances.join(', ')}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-
       {/* Attributes and Skills */}
       <Card variant="default">
         <CardHeader>
