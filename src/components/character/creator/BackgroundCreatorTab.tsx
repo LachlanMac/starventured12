@@ -1,4 +1,5 @@
 import React from 'react';
+import CharacterPortraitUploader from '../CharacterPortraitUploader';
 
 interface BackgroundCreatorTabProps {
   physicalTraits: {
@@ -17,9 +18,11 @@ interface BackgroundCreatorTabProps {
   attributes: {
     [key: string]: number;
   };
+  portraitFile: File | null;
   onUpdatePhysicalTrait: (trait: string, value: string) => void;
   onUpdateAppearance: (value: string) => void;
   onUpdateBiography: (value: string) => void;
+  onUpdatePortrait: (file: File) => void;
 }
 
 const BackgroundCreatorTab: React.FC<BackgroundCreatorTabProps> = ({
@@ -31,10 +34,15 @@ const BackgroundCreatorTab: React.FC<BackgroundCreatorTabProps> = ({
   level,
   modulePoints,
   attributes,
+  portraitFile,
   onUpdatePhysicalTrait,
   onUpdateAppearance,
   onUpdateBiography,
+  onUpdatePortrait,
 }) => {
+  // Create a temporary URL for the portrait file if it exists
+  const portraitPreview = portraitFile ? URL.createObjectURL(portraitFile) : null;
+
   return (
     <div>
       <h2
@@ -47,6 +55,26 @@ const BackgroundCreatorTab: React.FC<BackgroundCreatorTabProps> = ({
       >
         Character Background
       </h2>
+
+      {/* Portrait upload section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <label
+          style={{
+            display: 'block',
+            color: 'var(--color-cloud)',
+            marginBottom: '0.5rem',
+          }}
+        >
+          Character Portrait
+        </label>
+        <div className="flex justify-center md:justify-start">
+          <CharacterPortraitUploader
+            currentPortrait={portraitPreview}
+            onPortraitChange={onUpdatePortrait}
+            size="large"
+          />
+        </div>
+      </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
         <div

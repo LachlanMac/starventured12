@@ -72,7 +72,7 @@ const CharacterCreate: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTraits, setSelectedTraits] = useState<Trait[]>([]);
-  
+  const [portraitFile, setPortraitFile] = useState<File | null>(null);
   // Tracking for attribute and talent points
   const [attributePointsRemaining, setAttributePointsRemaining] = useState<number>(5);
   const [talentStarsRemaining, setTalentStarsRemaining] = useState<number>(5);
@@ -317,6 +317,11 @@ const CharacterCreate: React.FC = () => {
     }
   };
 
+
+  const handlePortraitUpdate = (file: File) => {
+    setPortraitFile(file);
+  };
+
   const handleSelectTrait = (trait: Trait) => {
     setSelectedTraits((prev) => [...prev, trait]);
 
@@ -399,6 +404,26 @@ const CharacterCreate: React.FC = () => {
         console.log('NOT OK');
         throw new Error('Failed to create character');
       }
+      if (portraitFile) {
+        try {
+          const formData = new FormData();
+          formData.append('portrait', portraitFile);
+          
+          const portraitResponse = await fetch(`/api/portraits/${data._id}/portrait`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+          });
+          
+          if (!portraitResponse.ok) {
+            console.warn('Failed to upload portrait, but character was created');
+          }
+        } catch (portraitErr) {
+          console.error('Error uploading portrait:', portraitErr);
+          // Continue to character page even if portrait upload fails
+        }
+      }
+
       console.log('OK');
       const data = await response.json();
       console.log('Character created:', data);
@@ -507,11 +532,13 @@ const CharacterCreate: React.FC = () => {
                 level={character.level}
                 modulePoints={character.modulePoints}
                 attributes={character.attributes}
+                portraitFile={portraitFile}
                 onUpdatePhysicalTrait={(trait, value) => 
                   updateNestedField('physicalTraits', trait, value)
                 }
                 onUpdateAppearance={(value) => updateCharacter('appearance', value)}
                 onUpdateBiography={(value) => updateCharacter('biography', value)}
+                onUpdatePortrait={handlePortraitUpdate}
               />
             )}
 

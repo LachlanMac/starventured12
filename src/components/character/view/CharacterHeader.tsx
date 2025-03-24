@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Card, { CardBody } from '../../ui/Card';
 import Button from '../../ui/Button';
+import CharacterPortraitUploader from '../CharacterPortraitUploader';
 
 interface CharacterHeaderProps {
   character: {
@@ -9,11 +10,48 @@ interface CharacterHeaderProps {
     name: string;
     race: string;
     level: number;
+    portraitUrl?: string | null;
   };
   onDelete: () => void;
 }
 
 const CharacterHeader: React.FC<CharacterHeaderProps> = ({ character, onDelete }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [portraitUrl, setPortraitUrl] = useState<string | null>(character.portraitUrl || null);
+
+  const handlePortraitChange = async (file: File) => {
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('portrait', file);
+      
+      // Upload portrait
+      const response = await fetch(`/api/portraits/${character._id}/portrait`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload portrait');
+      }
+      
+      const data = await response.json();
+      
+      // Update portrait URL
+      setPortraitUrl(data.portraitUrl);
+    } catch (error) {
+      console.error('Error uploading portrait:', error);
+      alert('Failed to upload portrait. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <Card variant="elevated">
       <CardBody>
@@ -23,9 +61,19 @@ const CharacterHeader: React.FC<CharacterHeaderProps> = ({ character, onDelete }
             flexDirection: 'column',
             gap: '1rem',
           }}
-          className="md:flex-row md:justify-between md:items-center"
+          className="md:flex-row md:items-center"
         >
-          <div>
+          {/* Portrait section */}
+          <div className="flex justify-center md:justify-start">
+            <CharacterPortraitUploader
+              currentPortrait={portraitUrl}
+              onPortraitChange={handlePortraitChange}
+              size="medium"
+            />
+          </div>
+
+          {/* Character info */}
+          <div className="flex-1">
             <h1
               style={{
                 color: 'var(--color-white)',
@@ -61,7 +109,9 @@ const CharacterHeader: React.FC<CharacterHeaderProps> = ({ character, onDelete }
               </span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          
+          {/* Actions */}
+          <div className="flex gap-2 justify-center md:justify-end">
             <Link to={`/characters/${character._id}/edit`}>
               <Button variant="secondary">Edit</Button>
             </Link>

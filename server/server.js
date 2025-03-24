@@ -13,6 +13,7 @@ import characterRoutes from './routes/characterRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import moduleRoutes from './routes/moduleRoutes.js';
 import traitRoutes from './routes/traitRoutes.js';
+import portraitRoutes from './routes/portraitRoutes.js';
 // Import middleware
 import { getUser } from './middleware/auth.js';
 
@@ -81,10 +82,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/characters', characterRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/traits', traitRoutes);
+app.use('/api/portraits', portraitRoutes);
+
 // Root route for API health check
 app.get('/api', (req, res) => {
   res.json({ message: 'API is running' });
 });
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {

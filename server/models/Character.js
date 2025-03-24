@@ -100,6 +100,10 @@ const CharacterSchema = new Schema({
     required: [true, 'Character name is required'],
     trim: true
   },
+  portraitUrl: {
+    type: String,
+    default: null
+  },
   race: {
     type: String,
     required: [true, 'Race is required']

@@ -10,15 +10,58 @@ interface BackgroundTabProps {
   };
   appearance: string;
   biography: string;
+  portraitUrl?: string | null;
 }
 
 const BackgroundTab: React.FC<BackgroundTabProps> = ({ 
   physicalTraits, 
   appearance, 
-  biography 
+  biography,
+  portraitUrl
 }) => {
   return (
     <div>
+      {/* Character Portrait */}
+      {portraitUrl && (
+        <Card variant="default" style={{ marginBottom: '1.5rem' }}>
+          <CardHeader>
+            <h2
+              style={{
+                color: 'var(--color-white)',
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+              }}
+            >
+              Character Portrait
+            </h2>
+          </CardHeader>
+          <CardBody>
+            <div className="flex justify-center">
+              <div
+                style={{
+                  width: '200px',
+                  height: '200px',
+                  borderRadius: '0.5rem',
+                  overflow: 'hidden',
+                  backgroundColor: 'var(--color-dark-elevated)',
+                  border: '1px solid var(--color-dark-border)',
+                }}
+              >
+                <img 
+                  src={portraitUrl} 
+                  alt="Character portrait" 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       <Card variant="default" style={{ marginBottom: '1.5rem' }}>
         <CardHeader>
           <h2
