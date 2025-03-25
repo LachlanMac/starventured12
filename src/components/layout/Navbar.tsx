@@ -33,7 +33,7 @@ const Navbar: React.FC = () => {
                 color: 'var(--color-metal-gold)',
               }}
             >
-              StarVenture
+              Starbelter TTRPG
             </span>
           </Link>
 

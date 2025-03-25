@@ -48,8 +48,8 @@ const ModulesPage: React.FC = () => {
   const [allModules, setAllModules] = useState<Module[]>([]);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
 
-  // Filter for module types
-  const [activeTab, setActiveTab] = useState<'all' | 'racial' | 'core' | 'secondary'>('all');
+  // Search functionality
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Fetch character and modules data
   useEffect(() => {
@@ -84,10 +84,6 @@ const ModulesPage: React.FC = () => {
     fetchData();
   }, [characterId]);
 
-  // Filter modules based on active tab
-  const filteredModules =
-    activeTab === 'all' ? allModules : allModules.filter((module) => module.mtype === activeTab);
-
   // Check if a module is selected by the character
   const isModuleSelected = (moduleId: string) => {
     return character?.modules.some((m) => {
@@ -116,6 +112,12 @@ const ModulesPage: React.FC = () => {
   const isOptionSelected = (moduleId: string, location: string) => {
     const charModule = getCharacterModule(moduleId);
     return charModule?.selectedOptions.some((o) => o.location === location) || false;
+  };
+
+  // Check if a racial module has any selected options
+  const hasSelectedOptions = (moduleId: string) => {
+    const charModule = getCharacterModule(moduleId);
+    return (charModule?.selectedOptions.length || 0) > 0;
   };
 
   // Check if an option can be selected (prerequisites met)
@@ -169,6 +171,7 @@ const ModulesPage: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         });
 
         if (!addModuleResponse.ok) {
@@ -181,6 +184,7 @@ const ModulesPage: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify({ location }),
         });
 
@@ -197,6 +201,7 @@ const ModulesPage: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify({ location }),
         });
 
@@ -214,8 +219,13 @@ const ModulesPage: React.FC = () => {
   };
 
   // Handle deselecting a module option
-  const handleDeselectOption = async (moduleId: string, location: string) => {
+  const handleDeselectOption = async (moduleId: string, location: string, moduleType: string) => {
     try {
+      // Prevent deselecting tier 1 option if it's a racial module
+      if (location === '1' && moduleType === 'racial') {
+        return; // Prevent deselection of racial module tier 1
+      }
+      
       // If this is tier 1, deselecting it will remove the entire module
       if (location === '1') {
         const response = await fetch(`/api/characters/${characterId}/modules/${moduleId}`, {
@@ -223,6 +233,7 @@ const ModulesPage: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -240,6 +251,7 @@ const ModulesPage: React.FC = () => {
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include',
           }
         );
 
@@ -264,6 +276,60 @@ const ModulesPage: React.FC = () => {
   // Check if user has enough module points
   const hasEnoughPoints = (cost: number = 1) => {
     return ((character?.modulePoints.total || 0) - (character?.modulePoints.spent || 0)) >= cost;
+  };
+
+  // Filter and sort modules for display
+  const getDisplayModules = () => {
+    if (!allModules.length) return [];
+    
+    let filteredModules = [...allModules];
+    
+    // Filter out racial modules that have no selected options
+    filteredModules = filteredModules.filter((module) => {
+      // Keep non-racial modules
+      if (module.mtype !== 'racial') return true;
+      
+      // For racial modules, only keep those with at least one selected option
+      return hasSelectedOptions(module._id);
+    });
+    
+    // Apply search term filter
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase().trim();
+      filteredModules = filteredModules.filter((module) => {
+        // Search in module name
+        if (module.name.toLowerCase().includes(term)) return true;
+        
+        // Search in module type
+        if (module.mtype.toLowerCase().includes(term)) return true;
+        
+        // Search in options
+        return module.options.some(
+          option => 
+            option.name.toLowerCase().includes(term) || 
+            option.description.toLowerCase().includes(term)
+        );
+      });
+    }
+    
+    // Sort modules: selected modules first, then by type and name
+    return filteredModules.sort((a, b) => {
+      // Selected modules go first
+      const aSelected = isModuleSelected(a._id);
+      const bSelected = isModuleSelected(b._id);
+      
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      
+      // If both are selected or both are not selected, sort by type then name
+      if (a.mtype !== b.mtype) {
+        const typeOrder = { racial: 0, core: 1, secondary: 2 };
+        return typeOrder[a.mtype as keyof typeof typeOrder] - typeOrder[b.mtype as keyof typeof typeOrder];
+      }
+      
+      // Sort by name as last resort
+      return a.name.localeCompare(b.name);
+    });
   };
 
   if (loading) {
@@ -296,6 +362,8 @@ const ModulesPage: React.FC = () => {
       </div>
     );
   }
+
+  const displayModules = getDisplayModules();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -340,40 +408,80 @@ const ModulesPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* Module type tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '1rem',
-          marginBottom: '2rem',
-          overflowX: 'auto',
-          paddingBottom: '0.5rem',
-        }}
-      >
-        <Button
-          variant={activeTab === 'all' ? 'accent' : 'secondary'}
-          onClick={() => setActiveTab('all')}
-        >
-          All Modules
-        </Button>
-        <Button
-          variant={activeTab === 'racial' ? 'accent' : 'secondary'}
-          onClick={() => setActiveTab('racial')}
-        >
-          Racial
-        </Button>
-        <Button
-          variant={activeTab === 'core' ? 'accent' : 'secondary'}
-          onClick={() => setActiveTab('core')}
-        >
-          Core
-        </Button>
-        <Button
-          variant={activeTab === 'secondary' ? 'accent' : 'secondary'}
-          onClick={() => setActiveTab('secondary')}
-        >
-          Secondary
-        </Button>
+      {/* Search bar */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ position: 'relative' }}>
+          <input 
+            type="text"
+            placeholder="Search modules..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              backgroundColor: 'var(--color-dark-elevated)',
+              color: 'var(--color-white)',
+              border: '1px solid var(--color-dark-border)',
+              borderRadius: '0.375rem',
+              padding: '0.75rem 1rem',
+              paddingLeft: '2.5rem',
+            }}
+          />
+          <div 
+            style={{
+              position: 'absolute',
+              left: '0.75rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'var(--color-cloud)',
+            }}
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              style={{
+                position: 'absolute',
+                right: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--color-cloud)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.25rem',
+              }}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -392,13 +500,22 @@ const ModulesPage: React.FC = () => {
               </h2>
             </CardHeader>
             <CardBody>
-              {filteredModules.length === 0 ? (
+              {displayModules.length === 0 ? (
                 <div style={{ color: 'var(--color-cloud)', padding: '1rem' }}>
                   No modules available
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {filteredModules.map((module) => (
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '0.5rem',
+                    maxHeight: '600px',
+                    overflowY: 'auto',
+                    paddingRight: '0.25rem'
+                  }}
+                >
+                  {displayModules.map((module) => (
                     <div
                       key={module._id}
                       style={{
@@ -564,7 +681,7 @@ const ModulesPage: React.FC = () => {
                                 onClick={() => {
                                   if (canSelect && (isSelected || hasEnoughPointsForOption)) {
                                     isSelected
-                                      ? handleDeselectOption(selectedModule._id, option.location)
+                                      ? handleDeselectOption(selectedModule._id, option.location, selectedModule.mtype)
                                       : handleSelectOption(selectedModule._id, option.location);
                                   }
                                 }}

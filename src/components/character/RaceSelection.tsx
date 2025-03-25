@@ -1,5 +1,4 @@
-// Race Selection section in CharacterCreate.tsx
-
+// Updated Race Selection component
 import React, { useState, useEffect } from 'react';
 
 // Define RacialModule type to match the structure in the JSON files
@@ -10,17 +9,21 @@ interface RacialModuleOption {
   data: string;
 }
 
-interface RacialModule {
+export interface RacialModule {
+  _id: string; // Make sure we have the _id field
   name: string;
+  mtype: string;
   ruleset: number;
   options: RacialModuleOption[];
-  description?: string; // Optional field we'll add for race descriptions
+  description?: string;
 }
 
-const RaceSelection: React.FC<{
+interface RaceSelectionProps {
   selectedRace: string;
-  onSelectRace: (race: string) => void;
-}> = ({ selectedRace, onSelectRace }) => {
+  onSelectRace: (race: string, racialModule: RacialModule) => void; // Updated to pass the actual module
+}
+
+const RaceSelection: React.FC<RaceSelectionProps> = ({ selectedRace, onSelectRace }) => {
   const [racialModules, setRacialModules] = useState<RacialModule[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +32,6 @@ const RaceSelection: React.FC<{
     const fetchRacialModules = async () => {
       try {
         setLoading(true);
-        // In a real app, you'd fetch this from your API
         const response = await fetch('/api/modules/type/racial');
 
         if (!response.ok) {
@@ -37,11 +39,12 @@ const RaceSelection: React.FC<{
         }
 
         const data = await response.json();
+        console.log("Fetched racial modules in RaceSelection:", data);
 
-        // Add description field to each module - in production this would come from the API
+        // Add description field to each module if needed
         const modulesWithDescriptions = data.map((module: RacialModule) => ({
           ...module,
-          description: getRaceDescription(module.name),
+          description: module.description || getRaceDescription(module.name),
         }));
 
         setRacialModules(modulesWithDescriptions);
@@ -71,6 +74,17 @@ const RaceSelection: React.FC<{
         return 'Reptilian species with natural resilience to harsh environments, the Zssesh have remarkable regenerative capabilities and physical endurance.';
       default:
         return 'A mysterious species with unique physiologies and cultural perspectives, bringing diversity and unexpected approaches to challenges.';
+    }
+  };
+
+  // Handler for race selection
+  const handleRaceSelect = (raceName: string) => {
+    const selectedModule = racialModules.find(module => module.name === raceName);
+    if (selectedModule) {
+      console.log("Selected racial module in RaceSelection:", selectedModule);
+      onSelectRace(raceName, selectedModule);
+    } else {
+      console.error(`Could not find racial module for race: ${raceName}`);
     }
   };
 
@@ -134,7 +148,7 @@ const RaceSelection: React.FC<{
               transition: 'background-color 0.2s',
               minWidth: '120px',
             }}
-            onClick={() => onSelectRace(module.name)}
+            onClick={() => handleRaceSelect(module.name)}
           >
             {module.name}
           </button>

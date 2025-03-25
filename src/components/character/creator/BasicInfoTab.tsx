@@ -1,12 +1,12 @@
 import React from 'react';
-import RaceSelection from '../RaceSelection';
+import RaceSelection, { RacialModule } from '../RaceSelection'; // Import the updated interface
 
 interface BasicInfoTabProps {
   name: string;
   race: string;
   modulePoints: number;
   onNameChange: (name: string) => void;
-  onRaceChange: (race: string) => void;
+  onRaceChange: (race: string, racialModule: RacialModule) => void; // Updated to include module
   onModulePointsChange: (points: number) => void;
 }
 

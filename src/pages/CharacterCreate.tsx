@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect  } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardBody } from '../components/ui/Card';
@@ -66,6 +66,18 @@ const ATTRIBUTE_SKILLS = {
   ],
 };
 
+interface RacialModule {
+  _id: string;
+  name: string;
+  mtype: string;
+  options: {
+    name: string;
+    description: string;
+    location: string;
+    data: string;
+  }[];
+}
+
 const CharacterCreate: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<number>(1);
@@ -76,6 +88,8 @@ const CharacterCreate: React.FC = () => {
   // Tracking for attribute and talent points
   const [attributePointsRemaining, setAttributePointsRemaining] = useState<number>(5);
   const [talentStarsRemaining, setTalentStarsRemaining] = useState<number>(5);
+  const [racialModules, setRacialModules] = useState<RacialModule[]>([]);
+  const [selectedRacialModule, setSelectedRacialModule] = useState<RacialModule | null>(null);
 
   // Define steps
   const steps = ['Basic Info', 'Attributes', 'Talents', 'Traits', 'Background'];
@@ -149,6 +163,37 @@ const CharacterCreate: React.FC = () => {
     // For testing, hardcode a userId - in a real app this would come from auth
     userId: 'test-user-id',
   });
+
+
+  useEffect(() => {
+    const fetchRacialModules = async () => {
+      try {
+        const response = await fetch('/api/modules/type/racial');
+        if (!response.ok) {
+          throw new Error('Failed to fetch racial modules');
+        }
+        const data = await response.json();
+        setRacialModules(data);
+      } catch (err) {
+        console.error('Error fetching racial modules:', err);
+        // Handle error appropriately
+      }
+    };
+  
+    fetchRacialModules();
+  }, []);
+
+
+  const handleRaceChange = (raceName: string, racialModule: RacialModule) => {
+    console.log("handleRaceChange called with:", raceName);
+    console.log("Received racial module:", racialModule);
+    
+    // Update the race in character state
+    updateCharacter('race', raceName);
+    
+    // Store the racial module directly
+    setSelectedRacialModule(racialModule);
+  };
 
   // Update basic character field
   const updateCharacter = (field: string, value: any) => {
@@ -364,6 +409,22 @@ const CharacterCreate: React.FC = () => {
     setIsLoading(true);
     try {
       console.log('Sending character data:', character);
+      let initialModules = [];
+      if (selectedRacialModule) {
+        // Find the tier 1 option of the racial module
+        const tier1Option = selectedRacialModule.options.find(option => option.location === '1');
+        
+        if (tier1Option) {
+          initialModules.push({
+            moduleId: selectedRacialModule._id,
+            selectedOptions: [{
+              location: '1',
+              selectedAt: new Date().toISOString()
+            }]
+          });
+        }
+      }
+
       // Transform the character data for the API
       const characterData = {
         name: character.name,
@@ -378,6 +439,7 @@ const CharacterCreate: React.FC = () => {
         biography: character.biography,
         appearance: character.appearance,
         physicalTraits: character.physicalTraits,
+        modules: initialModules,
         characterCreation: {
           attributePointsRemaining: attributePointsRemaining,
           talentStarsRemaining: talentStarsRemaining,
@@ -483,7 +545,7 @@ const CharacterCreate: React.FC = () => {
                 race={character.race}
                 modulePoints={character.modulePoints.total}
                 onNameChange={(name) => updateCharacter('name', name)}
-                onRaceChange={(race) => updateCharacter('race', race)}
+                onRaceChange={handleRaceChange}
                 onModulePointsChange={(points) => {
                   updateNestedField('modulePoints', 'total', points);
                   updateCharacter('level', Math.floor(points / 10));
