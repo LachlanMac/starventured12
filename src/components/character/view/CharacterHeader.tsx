@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Card, { CardHeader, CardBody } from '../../ui/Card';
-import Button from '../../ui/Button';
+import Card, { CardHeader, CardBody } from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button'
 import CharacterPortraitUploader from '../CharacterPortraitUploader';
 
 interface CharacterHeaderProps {
@@ -27,15 +27,12 @@ interface CharacterHeaderProps {
 }
 
 const CharacterHeader: React.FC<CharacterHeaderProps> = ({ character, onDelete }) => {
-  const [isUploading, setIsUploading] = useState(false);
   const [portraitUrl, setPortraitUrl] = useState<string | null>(character.portraitUrl || null);
 
   const handlePortraitChange = async (file: File) => {
     if (!file) return;
 
     try {
-      setIsUploading(true);
-      
       // Create form data
       const formData = new FormData();
       formData.append('portrait', file);
@@ -58,8 +55,6 @@ const CharacterHeader: React.FC<CharacterHeaderProps> = ({ character, onDelete }
     } catch (error) {
       console.error('Error uploading portrait:', error);
       alert('Failed to upload portrait. Please try again.');
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -133,7 +128,7 @@ const CharacterHeader: React.FC<CharacterHeaderProps> = ({ character, onDelete }
         </div>
       </CardHeader>
 
-      <CardBody style={{ padding: '1.25rem' }}>
+      <CardBody>
         <div className="flex flex-col md:flex-row gap-6">
           {/* Portrait section - left column */}
           <div className="flex-shrink-0 flex justify-center">

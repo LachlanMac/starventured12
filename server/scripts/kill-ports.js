@@ -1,8 +1,7 @@
 // kill-ports.js - Script to kill processes on ports 5000 and 5175 on Windows
 import { execSync } from 'child_process';
 
-
-const ports = [5000, 5175];
+const ports = [6000, 5175];
 
 console.log(`Checking for processes on ports ${ports.join(' and ')}...`);
 

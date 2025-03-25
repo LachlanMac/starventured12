@@ -261,7 +261,7 @@ const ModulesPage: React.FC = () => {
     }
   };
 
-  const getOptionCost = (location: string): number => {
+  const getOptionCost = (_location: string): number => {
     // New simplified cost structure
     return 1;
   };
@@ -422,7 +422,7 @@ const ModulesPage: React.FC = () => {
         >
           Module Points:{' '}
           <span style={{ fontWeight: 'bold' }}>
-            {character?.modulePoints.total - character?.modulePoints.spent || 0}
+          {(character?.modulePoints?.total || 0) - (character?.modulePoints?.spent || 0)}
           </span>{' '}
           / {character?.modulePoints.total || 0}
         </div>

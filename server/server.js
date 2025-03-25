@@ -21,6 +21,7 @@ import { getUser } from './middleware/auth.js';
 import setupPassport from './config/passport.js';
 import { initializeModules } from './utils/moduleSeeder.js';
 import { initializeTraits } from './utils/traitSeeder.js';
+
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,7 +34,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5174',
+  origin: process.env.FRONTEND_URL || 'http://localhost:6000',
   credentials: true  // Allow cookies to be sent
 }));
 app.use(express.json());
@@ -77,7 +78,7 @@ const connectDB = async () => {
   }
 };
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/characters', characterRoutes);
 app.use('/api/modules', moduleRoutes);
@@ -89,37 +90,47 @@ app.get('/api', (req, res) => {
   res.json({ message: 'API is running' });
 });
 
+// Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../dist', 'index.html'));
-  });
-}
 
 // Handle 404 errors for API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'API route not found' });
 });
-// Error handling middleware
+
+// Error handling middleware for API routes
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    message: err.message || 'Something went wrong on the server',
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack
-  });
+  if (req.path.startsWith('/api')) {
+    console.error(err.stack);
+    res.status(500).json({
+      message: err.message || 'Something went wrong on the server',
+      stack: process.env.NODE_ENV === 'production' ? null : err.stack
+    });
+  } else {
+    next(err);
+  }
+});
+
+// Serve static assets in production
+console.log(`Current environment: ${process.env.NODE_ENV}`);
+console.log(`Static files path: ${path.join(__dirname, '../dist')}`);
+
+// Static file serving - make sure this path is correct
+const distPath = path.resolve(__dirname, '../dist');
+app.use(express.static(distPath));
+
+// For any route that doesn't match above, send the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // Define port
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 6000;
 
 // Connect to database, then start server
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Server accessible at http://localhost:${PORT}`);
   });
 });

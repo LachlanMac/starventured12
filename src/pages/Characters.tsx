@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { useAuth } from '../context/AuthContext';
 
 // Define Character type
 interface Character {
@@ -20,7 +18,6 @@ interface Character {
 }
 
 const Characters: React.FC = () => {
-  const { user } = useAuth();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

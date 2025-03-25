@@ -358,7 +358,6 @@ const CharacterCreate: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
     if (!validateStep()) return;
 
@@ -404,6 +403,11 @@ const CharacterCreate: React.FC = () => {
         console.log('NOT OK');
         throw new Error('Failed to create character');
       }
+      
+      const data = await response.json();
+      console.log('Character created:', data);
+      
+      // Now upload portrait if one was selected
       if (portraitFile) {
         try {
           const formData = new FormData();
@@ -423,10 +427,6 @@ const CharacterCreate: React.FC = () => {
           // Continue to character page even if portrait upload fails
         }
       }
-
-      console.log('OK');
-      const data = await response.json();
-      console.log('Character created:', data);
 
       // Redirect to character sheet
       navigate(`/characters/${data._id}`);

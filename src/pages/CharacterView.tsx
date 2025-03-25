@@ -20,17 +20,6 @@ interface Action {
   sourceModuleOption: string;
 }
 
-interface ModuleOption {
-  id: number;
-  name: string;
-  description: string;
-  mtype: string;
-  location: string;
-  cost: number;
-  data: string;
-  selected: boolean;
-}
-
 interface Trait {
   traitId: string;
   name: string;

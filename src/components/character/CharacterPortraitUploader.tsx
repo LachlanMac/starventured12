@@ -1,14 +1,20 @@
 import React, { useState, useRef } from 'react';
 import Button from '../ui/Button';
 
-const CharacterPortraitUploader = ({ 
+interface CharacterPortraitUploaderProps {
+  currentPortrait: string | null;
+  onPortraitChange: (file: File) => void;
+  size?: 'small' | 'medium' | 'large';
+}
+
+const CharacterPortraitUploader: React.FC<CharacterPortraitUploaderProps> = ({ 
   currentPortrait, 
   onPortraitChange,
   size = 'large' // 'small', 'medium', or 'large'
 }) => {
-  const [preview, setPreview] = useState(currentPortrait || null);
+  const [preview, setPreview] = useState<string | null>(currentPortrait || null);
   const [isHovering, setIsHovering] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Determine dimensions based on size prop
   const getDimensions = () => {
@@ -26,8 +32,8 @@ const CharacterPortraitUploader = ({
   const dimensions = getDimensions();
 
   // Handle file selection
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     // Check file type
@@ -53,7 +59,9 @@ const CharacterPortraitUploader = ({
 
   // Trigger file input click
   const handleUploadClick = () => {
-    fileInputRef.current.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
