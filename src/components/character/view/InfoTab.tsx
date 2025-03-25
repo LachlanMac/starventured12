@@ -92,11 +92,6 @@ const ATTRIBUTE_SKILLS = {
 const DICE_TYPES = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'];
 
 const InfoTab: React.FC<InfoTabProps> = ({ character }) => {
-  // Calculate available module points
-  const availableModulePoints = character.modulePoints 
-    ? character.modulePoints.total - (character.modulePoints.spent || 0) 
-    : 0;
-  const totalModulePoints = character.modulePoints?.total || 0;
 
   return (
     <div className="grid grid-cols-1 gap-6">
