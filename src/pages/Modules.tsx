@@ -1,4 +1,3 @@
-// src/pages/ModulesPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
@@ -10,7 +9,6 @@ interface ModuleOption {
   description: string;
   location: string;
   data: string;
-  selected?: boolean;
 }
 
 interface Module {
@@ -27,13 +25,7 @@ interface SelectedOption {
 }
 
 interface CharacterModule {
-  moduleId: {
-    _id: string;
-    name: string;
-    mtype: string;
-    ruleset: number;
-    options: ModuleOption[];
-  };
+  moduleId: string | Module;
   selectedOptions: SelectedOption[];
 }
 
@@ -98,12 +90,26 @@ const ModulesPage: React.FC = () => {
 
   // Check if a module is selected by the character
   const isModuleSelected = (moduleId: string) => {
-    return character?.modules.some((m) => m.moduleId._id === moduleId) || false;
+    return character?.modules.some((m) => {
+      // Handle both populated and unpopulated moduleId cases
+      if (typeof m.moduleId === 'string') {
+        return m.moduleId === moduleId;
+      } else {
+        return m.moduleId._id === moduleId;
+      }
+    }) || false;
   };
 
   // Get the character module for a given module ID
   const getCharacterModule = (moduleId: string) => {
-    return character?.modules.find((m) => m.moduleId._id === moduleId);
+    return character?.modules.find((m) => {
+      // Handle both populated and unpopulated moduleId cases
+      if (typeof m.moduleId === 'string') {
+        return m.moduleId === moduleId;
+      } else {
+        return m.moduleId._id === moduleId;
+      }
+    });
   };
 
   // Check if an option is selected by the character
@@ -123,7 +129,7 @@ const ModulesPage: React.FC = () => {
 
     const tier = parseInt(tierMatch[1]);
 
-    // For tier 2 and above, check if the previous tier is selected
+    // For tier 2 and above, check if prerequisite tiers are selected
     if (tier === 2) {
       // For tier 2, check if tier 1 is selected
       return isOptionSelected(module._id, '1');
@@ -136,100 +142,71 @@ const ModulesPage: React.FC = () => {
 
       if (isSubOption) {
         // Need to check if the parent tier is selected
-        const parentTier = location.substring(0, 1);
+        const previousTier = (tier - 1).toString();
         const charModule = getCharacterModule(module._id);
 
         // Check if any option from the previous tier is selected
-        return charModule?.selectedOptions.some((o) => o.location.startsWith(parentTier)) || false;
+        return charModule?.selectedOptions.some((o) => o.location.startsWith(previousTier)) || false;
       } else {
         // Need to check if any option from the previous tier is selected
         const previousTier = (tier - 1).toString();
         const charModule = getCharacterModule(module._id);
 
         // Check if any option from the previous tier is selected
-        return (
-          charModule?.selectedOptions.some((o) => o.location.startsWith(previousTier)) || false
-        );
+        return charModule?.selectedOptions.some((o) => o.location.startsWith(previousTier)) || false;
       }
     }
   };
 
-  const handleSelectModule = async (moduleId: string) => {
-    try {
-      // Check if already selected
-      if (isModuleSelected(moduleId)) {
-        // If already selected, show the module details
-        setSelectedModule(allModules.find((m) => m._id === moduleId) || null);
-        return;
-      }
-  
-      // Add module to character
-      const response = await fetch(`/api/characters/${characterId}/modules/${moduleId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to add module');
-      }
-  
-      const updatedCharacter = await response.json();
-      setCharacter(updatedCharacter);
-  
-      // Show the module details
-      setSelectedModule(allModules.find((m) => m._id === moduleId) || null);
-    } catch (err) {
-      console.error('Error selecting module:', err);
-      setError(err instanceof Error ? err.message : 'Failed to select module');
-    }
-  };
-  
-
-  // Handle removing a module
-  const handleRemoveModule = async (moduleId: string) => {
-    try {
-      const response = await fetch(`/api/characters/${characterId}/modules/${moduleId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to remove module');
-      }
-
-      const updatedCharacter = await response.json();
-      setCharacter(updatedCharacter);
-
-      if (selectedModule && selectedModule._id === moduleId) {
-        setSelectedModule(null);
-      }
-    } catch (err) {
-      console.error('Error removing module:', err);
-      setError(err instanceof Error ? err.message : 'Failed to remove module');
-    }
-  };
-
-  // Handle selecting a module option
+  // Handle selecting a module and its first option
   const handleSelectOption = async (moduleId: string, location: string) => {
     try {
-      const response = await fetch(`/api/characters/${characterId}/modules/${moduleId}/options`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ location }),
-      });
+      // If this is tier 1 and the module isn't added yet, add module first
+      if (location === '1' && !isModuleSelected(moduleId)) {
+        // Add the module first
+        const addModuleResponse = await fetch(`/api/characters/${characterId}/modules/${moduleId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to select option');
+        if (!addModuleResponse.ok) {
+          throw new Error('Failed to add module');
+        }
+        
+        // Then select the option
+        const selectOptionResponse = await fetch(`/api/characters/${characterId}/modules/${moduleId}/options`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ location }),
+        });
+
+        if (!selectOptionResponse.ok) {
+          throw new Error('Failed to select option');
+        }
+
+        const updatedCharacter = await selectOptionResponse.json();
+        setCharacter(updatedCharacter);
+      } else {
+        // Just select the option (module already added)
+        const response = await fetch(`/api/characters/${characterId}/modules/${moduleId}/options`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ location }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to select option');
+        }
+
+        const updatedCharacter = await response.json();
+        setCharacter(updatedCharacter);
       }
-
-      const updatedCharacter = await response.json();
-      setCharacter(updatedCharacter);
     } catch (err) {
       console.error('Error selecting option:', err);
       setError(err instanceof Error ? err.message : 'Failed to select option');
@@ -239,125 +216,54 @@ const ModulesPage: React.FC = () => {
   // Handle deselecting a module option
   const handleDeselectOption = async (moduleId: string, location: string) => {
     try {
-      const response = await fetch(
-        `/api/characters/${characterId}/modules/${moduleId}/options/${location}`,
-        {
+      // If this is tier 1, deselecting it will remove the entire module
+      if (location === '1') {
+        const response = await fetch(`/api/characters/${characterId}/modules/${moduleId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
           },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to remove module');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('Failed to deselect option');
+        const updatedCharacter = await response.json();
+        setCharacter(updatedCharacter);
+      } else {
+        // Just deselect the option
+        const response = await fetch(
+          `/api/characters/${characterId}/modules/${moduleId}/options/${location}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to deselect option');
+        }
+
+        const updatedCharacter = await response.json();
+        setCharacter(updatedCharacter);
       }
-
-      const updatedCharacter = await response.json();
-      setCharacter(updatedCharacter);
     } catch (err) {
       console.error('Error deselecting option:', err);
       setError(err instanceof Error ? err.message : 'Failed to deselect option');
     }
   };
 
-  const getOptionCost = (location: string): number => {
-    // New simplified cost structure
-    return 1;
+  // Handle clicking on a module in the list (just to view, not add)
+  const handleViewModule = (module: Module) => {
+    setSelectedModule(module);
   };
-  
 
-  // Format data string for display
-  const formatDataString = (dataString: string) => {
-    if (!dataString) return null;
-
-    const effects = dataString.split(':');
-    const formattedEffects = effects.map((effect) => {
-      // Match patterns and translate them
-      if (effect.startsWith('AV=')) {
-        return `Movement +${effect.substring(3)}`;
-      }
-      if (effect.startsWith('AH=')) {
-        return `Health +${effect.substring(3)}`;
-      }
-      if (effect.match(/^AD\d+=\d+$/)) {
-        const code = effect.substring(2, 3);
-        const value = effect.substring(4);
-        const mitigationTypes = {
-          '1': 'Kinetic',
-          '2': 'Cold',
-          '3': 'Heat',
-          '4': 'Electrical',
-          '5': 'Mental',
-          '6': 'Toxic',
-          '7': 'Sonic',
-          '8': 'Radiation',
-        };
-        const mitigation = mitigationTypes[code as keyof typeof mitigationTypes] || 'Unknown';
-        return `${mitigation} Mitigation +${value}`;
-      }
-      if (effect.match(/^AS[A-Z\d]+=\d+$/)) {
-        const code = effect.substring(2, 3);
-        const value = effect.substring(4);
-        const skillTypes = {
-          '1': 'Fitness',
-          '2': 'Deflect',
-          '3': 'Might',
-          '4': 'Evade',
-          '5': 'Stealth',
-          '6': 'Coordination',
-          '7': 'Resilience',
-          '8': 'Concentration',
-          '9': 'Senses',
-          A: 'Science',
-          B: 'Technology',
-          C: 'Medicine',
-          D: 'Xenology',
-          E: 'Negotiation',
-          F: 'Behavior',
-          G: 'Presence',
-        };
-        const skill = skillTypes[code as keyof typeof skillTypes] || 'Unknown Skill';
-        return `${skill} +${value}`;
-      }
-      if (effect.match(/^AC\d+=\d+$/)) {
-        const code = effect.substring(2, 3);
-        const value = effect.substring(4);
-        const craftTypes = {
-          '1': 'Engineering',
-          '2': 'Fabrication',
-          '3': 'Biosculpting',
-          '4': 'Synthesis',
-        };
-        const craft = craftTypes[code as keyof typeof craftTypes] || 'Unknown Craft';
-        return `${craft} +${value}`;
-      }
-      if (effect.startsWith('TG')) {
-        return 'Trait';
-      }
-      if (effect.startsWith('ZX')) {
-        return 'Reaction';
-      }
-      if (effect.startsWith('XX')) {
-        return 'Action';
-      }
-      if (effect === 'Y') {
-        return 'Free Action';
-      }
-
-      // Return the raw code if we don't have a translation
-      return effect;
-    });
-
-    // If there are no translated effects, return null
-    if (formattedEffects.every((e) => !e)) return null;
-
-    // Return the formatted effects as a list
-    return (
-      <ul className="text-xs text-gray-400 mt-2">
-        {formattedEffects.map((effect, index) => effect && <li key={index}>{effect}</li>)}
-      </ul>
-    );
+  // Check if user has enough module points
+  const hasEnoughPoints = (cost: number = 1) => {
+    return ((character?.modulePoints.total || 0) - (character?.modulePoints.spent || 0)) >= cost;
   };
 
   if (loading) {
@@ -422,7 +328,7 @@ const ModulesPage: React.FC = () => {
         >
           Module Points:{' '}
           <span style={{ fontWeight: 'bold' }}>
-            {character?.modulePoints.total - character?.modulePoints.spent || 0}
+            {(character?.modulePoints?.total || 0) - (character?.modulePoints?.spent || 0)}
           </span>{' '}
           / {character?.modulePoints.total || 0}
         </div>
@@ -505,9 +411,11 @@ const ModulesPage: React.FC = () => {
                         border:
                           selectedModule?._id === module._id
                             ? '1px solid var(--color-metal-gold)'
-                            : '1px solid transparent',
+                            : isModuleSelected(module._id) 
+                              ? '1px solid var(--color-sat-purple)'
+                              : '1px solid transparent',
                       }}
-                      onClick={() => handleSelectModule(module._id)}
+                      onClick={() => handleViewModule(module)}
                     >
                       <div
                         style={{
@@ -536,23 +444,30 @@ const ModulesPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {isModuleSelected(module._id) ? (
+                        {isModuleSelected(module._id) && (
                           <div
                             style={{
-                              width: '0.5rem',
-                              height: '0.5rem',
-                              borderRadius: '50%',
-                              backgroundColor: 'var(--color-metal-gold)',
-                            }}
-                          ></div>
-                        ) : (
-                          <div
-                            style={{
-                              fontSize: '0.75rem',
-                              color: 'var(--color-cloud)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
                             }}
                           >
-                            2 pts
+                            <div
+                              style={{
+                                width: '0.5rem',
+                                height: '0.5rem',
+                                borderRadius: '50%',
+                                backgroundColor: 'var(--color-metal-gold)',
+                              }}
+                            ></div>
+                            <span
+                              style={{
+                                fontSize: '0.75rem',
+                                color: 'var(--color-metal-gold)',
+                              }}
+                            >
+                              Added
+                            </span>
                           </div>
                         )}
                       </div>
@@ -581,193 +496,119 @@ const ModulesPage: React.FC = () => {
                   >
                     {selectedModule.name}
                   </h2>
-
-                  {isModuleSelected(selectedModule._id) ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => handleRemoveModule(selectedModule._id)}
-                    >
-                      Remove Module
-                    </Button>
-                  ) : (
-                    <div style={{ color: 'var(--color-cloud)' }}>Cost: 2 points</div>
-                  )}
                 </div>
               </CardHeader>
 
               <CardBody>
-                {!isModuleSelected(selectedModule._id) ? (
-                  <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <p style={{ color: 'var(--color-cloud)', marginBottom: '1rem' }}>
-                      Select this module to add it to your character.
-                    </p>
-                    <Button
-                      variant="accent"
-                      onClick={() => handleSelectModule(selectedModule._id)}
-                      disabled={
-                        (character?.modulePoints.total || 0) -
-                          (character?.modulePoints.spent || 0) <
-                        2
-                      }
-                    >
-                      Add Module (2 points)
-                    </Button>
-                  </div>
-                ) : (
-                  <div>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <h3
-                        style={{
-                          color: 'var(--color-metal-gold)',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        Module Options
-                      </h3>
-                      <p style={{ color: 'var(--color-cloud)' }}>
-                        Select options to customize your character. Each tier requires selection
-                        from the previous tier.
-                      </p>
-                    </div>
+                {/* Module skill tree */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {/* Group options by tier */}
+                  {Array.from(
+                    new Set(
+                      selectedModule.options.map(
+                        (option) => option.location.match(/^(\d+)/)?.[1] || ''
+                      )
+                    )
+                  ).map((tier) => {
+                    // Filter options for this tier
+                    const tierOptions = selectedModule.options.filter((option) =>
+                      option.location.startsWith(tier)
+                    );
 
-                    {/* Module skill tree */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                      {/* Group options by tier */}
-                      {Array.from(
-                        new Set(
-                          selectedModule.options.map(
-                            (option) => option.location.match(/^(\d+)/)?.[1] || ''
-                          )
-                        )
-                      ).map((tier) => {
-                        // Filter options for this tier
-                        const tierOptions = selectedModule.options.filter((option) =>
-                          option.location.startsWith(tier)
-                        );
+                    // Check if it's an odd tier (1, 3, 5) or even (2, 4, etc)
+                    const isOddTier = parseInt(tier) % 2 === 1;
 
-                        return (
-                          <div key={tier}>
-                            <div
-                              style={{
-                                color: 'var(--color-white)',
-                                fontWeight: 'bold',
-                                marginBottom: '0.5rem',
-                              }}
-                            >
-                              Tier {tier}
-                            </div>
+                    return (
+                      <div key={tier} style={{ marginBottom: '0.25rem' }}>
+                        {/* Module options grid layout */}
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: isOddTier ? '1fr' : '1fr 1fr',
+                            gap: '0.75rem',
+                            justifyItems: 'center',
+                            width: '100%',
+                          }}
+                        >
+                          {tierOptions.map((option) => {
+                            // Adjust width based on tier
+                            const optionWidth = isOddTier ? '50%' : '100%';
+                            const isSelected = isOptionSelected(selectedModule._id, option.location);
+                            
+                            // For Tier 1, always make it selectable if module isn't added yet
+                            // For other tiers, check prerequisites
+                            const canSelect = option.location === '1' 
+                              ? true 
+                              : (isModuleSelected(selectedModule._id) && canSelectOption(selectedModule, option.location));
+                            
+                            const hasEnoughPointsForOption = hasEnoughPoints(1);
 
-                            <div
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                                gap: '1rem',
-                              }}
-                            >
-                              {tierOptions.map((option) => {
-                                const isSelected = isOptionSelected(
-                                  selectedModule._id,
-                                  option.location
-                                );
-                                const canSelect =
-                                  isModuleSelected(selectedModule._id) &&
-                                  canSelectOption(selectedModule, option.location);
-                                const optionCost = getOptionCost(option.location);
-                                const hasEnoughPoints =
-                                  (character?.modulePoints.total || 0) -
-                                    (character?.modulePoints.spent || 0) >=
-                                  optionCost;
+                            return (
+                              <div
+                                key={option.location}
+                                style={{
+                                  padding: '1rem',
+                                  borderRadius: '0.375rem',
+                                  backgroundColor: isSelected
+                                    ? 'var(--color-sat-purple-faded)'
+                                    : 'var(--color-dark-elevated)',
+                                  border: isSelected
+                                    ? '1px solid var(--color-metal-gold)'
+                                    : '1px solid var(--color-dark-border)',
+                                  width: optionWidth,
+                                  cursor: canSelect && (isSelected || hasEnoughPointsForOption) ? 'pointer' : 'not-allowed',
+                                  opacity: !canSelect || (!isSelected && !hasEnoughPointsForOption) ? 0.5 : 1,
+                                  position: 'relative',
+                                  textAlign: 'center'
+                                }}
+                                onClick={() => {
+                                  if (canSelect && (isSelected || hasEnoughPointsForOption)) {
+                                    isSelected
+                                      ? handleDeselectOption(selectedModule._id, option.location)
+                                      : handleSelectOption(selectedModule._id, option.location);
+                                  }
+                                }}
+                              >
+                                {/* Tier indicator in top right */}
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    top: '0.5rem',
+                                    right: '0.5rem',
+                                    color: 'var(--color-cloud)',
+                                    fontSize: '0.75rem',
+                                  }}
+                                >
+                                  {option.location}
+                                </div>
 
-                                return (
-                                  <div
-                                    key={option.location}
-                                    style={{
-                                      padding: '1rem',
-                                      borderRadius: '0.375rem',
-                                      backgroundColor: isSelected
-                                        ? 'var(--color-sat-purple-faded)'
-                                        : 'var(--color-dark-elevated)',
-                                      border: isSelected
-                                        ? '1px solid var(--color-metal-gold)'
-                                        : '1px solid var(--color-dark-border)',
-                                      opacity: !isSelected && !canSelect ? 0.5 : 1,
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        marginBottom: '0.5rem',
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          color: 'var(--color-white)',
-                                          fontWeight: 'bold',
-                                        }}
-                                      >
-                                        {option.name}
-                                      </div>
-                                      <div
-                                        style={{
-                                          color: 'var(--color-cloud)',
-                                          fontSize: '0.75rem',
-                                        }}
-                                      >
-                                        {option.location}
-                                      </div>
-                                    </div>
-
-                                    <p
-                                      style={{
-                                        color: 'var(--color-cloud)',
-                                        fontSize: '0.875rem',
-                                        marginBottom: '0.5rem',
-                                      }}
-                                    >
-                                      {option.description}
-                                    </p>
-
-                                    {/* Display formatted data if available */}
-                                    {option.data && formatDataString(option.data)}
-
-                                    <div style={{ textAlign: 'right', marginTop: '1rem' }}>
-                                      {isSelected ? (
-                                        <Button
-                                          variant="secondary"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleDeselectOption(
-                                              selectedModule._id,
-                                              option.location
-                                            )
-                                          }
-                                        >
-                                          Deselect
-                                        </Button>
-                                      ) : (
-                                        <Button
-                                          variant="accent"
-                                          size="sm"
-                                          disabled={!canSelect || !hasEnoughPoints}
-                                          onClick={() =>
-                                            handleSelectOption(selectedModule._id, option.location)
-                                          }
-                                        >
-                                          Select ({optionCost} pts)
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                                <div
+                                  style={{
+                                    color: 'var(--color-white)',
+                                    fontWeight: 'bold',
+                                    fontSize: '1rem',
+                                    marginBottom: '0.5rem',
+                                    marginTop: '0.5rem'
+                                  }}
+                                >
+                                  {option.name}
+                                </div>
+                                <p
+                                  style={{
+                                    color: 'var(--color-cloud)',
+                                    fontSize: '0.875rem',
+                                  }}
+                                >
+                                  {option.description}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </CardBody>
             </Card>
           ) : (

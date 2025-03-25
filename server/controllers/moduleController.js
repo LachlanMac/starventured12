@@ -72,6 +72,7 @@ export const getCharacterModules = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
     
+    
     res.json(character.modules);
   } catch (error) {
     console.error('Error fetching character modules:', error);
