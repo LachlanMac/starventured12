@@ -4,63 +4,63 @@
   "options": [
     {
       "name": "Shocktrooper",
-      "description": "Gain +1 Physical Mitigation while wearing Heavy Armor. You no longer suffer movement speed penalties from Heavy Armor.",
+      "description": "You have been trained in armor usage and close combat. Gain +1 Might and +1 Movement Speed in Armor.",
       "location": "1",
-      "data": "AD4=1:W3DR"
+      "data": "AS3=1:W3DR"
     },
     {
-      "name": "Juggernaut Charge",
-      "description": "When you move at least 3 units in a straight line toward an enemy and then hit them with a melee attack, you push them back 1 unit and they become Prone.",
+      "name": "Free Action : Juggernaut Charge",
+      "description": "Directly after moving 3 or more units in a straight line towards a creature that is no more than 1 size larger than you, you slam your body into them using your Might kill as the attack, dealing 1d4 damage and knocking them prone on a success.",
       "location": "2a",
+      "data": "Y"
+    },
+    {
+      "name": "Free Action : Weapon Bash",
+      "description": "You make a melee attack against an adjacent creature with the butt of a Ranged Weapon. The target must make a concentration check against your attack or become dazed.",
+      "location": "2b",
+      "data": "Y"
+    },
+    {
+      "name": "Tough",
+      "description": "Your training has instilled you with a toughness. Gain +1 Resilience and +1 Health.",
+      "location": "3",
+      "data": "AH=1:AS7=1"
+    },
+    {
+      "name": "Action : Sweeping Shot",
+      "description": "You make three, quick attacks at up to 3 creatures within your optimal range, using the 2nd highest dice as your attack score. If you only roll 1 dice as part of this attack, use a static value of 3 as your attack score.",
+      "location": "4a",
+      "data": "X"
+    },
+    {
+      "name": "Action : Press the Attack",
+      "description": "You make an attack with a Ranged or Heavy Ranged weapon against a creature that is either dazed or stunned, dealing an extra dice of damage.",
+      "location": "4b",
+      "data": "X"
+    },
+    {
+      "name": "Trained Trooper",
+      "description": "You have advanced training in close and ranged combat. Gain +1 skill with Ranged and Melee Weapons.",
+      "location": "5",
+      "data": "AZ2=1:AZ3=1"
+    },
+    {
+      "name": "Damage Control",
+      "description": "Gain +1 Kinetic, Cold, Heat and Electrical Mitigation while wearing Armor.",
+      "location": "6a",
       "data": "TO"
     },
     {
-      "name": "Reinforced Plating",
-      "description": "Gain +1 to all Mitigations while wearing Heavy Armor.",
-      "location": "2b",
-      "data": "W3D1=1:W3D2=1:W3D3=1:W3D4=1:W3D5=1:W3D6=1:W3D7=1:W3D8=1"
-    },
-    {
-      "name": "Powered Servos",
-      "description": "Gain +1 Movement Speed and +1 Strength while wearing Heavy Armor.",
-      "location": "3",
-      "data": "W3AV=1:W3S2=1"
-    },
-    {
-      "name": "Action : Overwatch",
-      "description": "Enter a defensive stance until the start of your next turn. During this time, when an enemy moves within your attack range, you can make an attack against them as a reaction.",
-      "location": "4a",
-      "data": "XX3"
-    },
-    {
-      "name": "Reaction : Hold the Line",
-      "description": "When an enemy would move past you, you can make a Strength check to stop their movement. If successful, they remain adjacent to you and cannot move further this turn.",
-      "location": "4b",
-      "data": "ZX2"
-    },
-    {
-      "name": "Ablative Armor",
-      "description": "The first time you would take damage in combat while wearing Heavy Armor, reduce that damage to 0. This ability recharges when you take a short rest.",
-      "location": "5",
-      "data": "W3TD"
-    },
-    {
-      "name": "Action : Breaching Charge",
-      "description": "You charge forward up to your movement speed in a straight line. Any barriers, obstacles, or enemies in your path take 2d6 damage and are pushed 1 unit to either side.",
-      "location": "6a",
-      "data": "XX3"
-    },
-    {
-      "name": "Walking Tank",
-      "description": "Gain immunity to Prone and Pushed conditions while wearing Heavy Armor. Additionally, gain +2 Physical Mitigation.",
+      "name": "Intimidating",
+      "description": "You are an imposing figure. Gain +1 Presence. Once per day in response to making a Presence check to intimidate, you can declare it in Impact roll.",
       "location": "6b",
-      "data": "W3AD4=2:W3I20:W3I24"
+      "data": "ASG=1:TD"
     },
     {
-      "name": "Master Shocktrooper",
-      "description": "While wearing Heavy Armor, you gain an additional action each turn that can only be used for movement or to make a basic attack. Additionally, gain +5 maximum Health.",
+      "name": "Shock and Awe",
+      "description": "On the first round of combat, you gain an extra turn after all other combatants have taken theirs.",
       "location": "7",
-      "data": "W3AH=5:W3TX"
+      "data": "TO"
     }
   ]
 }

@@ -1,5 +1,5 @@
 import Character from '../models/Character.js';
-
+import { applyModuleBonusesToCharacter } from '../utils/characterUtils.js';
 // @desc    Get all characters for a user
 // @route   GET /api/characters
 // @access  Private
@@ -25,19 +25,28 @@ export const getCharacters = async (req, res) => {
 // @access  Private
 export const getCharacter = async (req, res) => {
   try {
-    const character = await Character.findById(req.params.id);
+    // Find character by ID and populate the modules with their data
+    const character = await Character.findById(req.params.id)
+      .populate('modules.moduleId')
+      .populate('traits.traitId');
     
     if (!character) {
       return res.status(404).json({ message: 'Character not found' });
     }
     
-    res.json(character);
+    // Create a copy of the character
+    const characterWithBonuses = character.toObject();
+
+    // Apply module bonuses directly to the character's attributes
+    applyModuleBonusesToCharacter(characterWithBonuses);
+    console.log(characterWithBonuses);
+    
+    res.json(characterWithBonuses);
   } catch (error) {
     console.error('Error fetching character:', error);
     res.status(500).json({ message: error.message });
   }
 };
-
 // @desc    Create a new character
 // @route   POST /api/characters
 // @access  Private

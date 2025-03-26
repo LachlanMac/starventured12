@@ -3,64 +3,64 @@
   "ruleset": 0,
   "options": [
     {
-      "name": "Corpsman",
-      "description": "Gain +1 Medicine and +1 Resilience. You can stabilize a dying creature as a bonus action.",
+      "name": "Action : Triage",
+      "description": "Without any equipment, you upgrade the status of an adjacent ally who is Bleeding Out to Stable by succeeding on a Medicine Check of 6. If you succeed, the next Medicine Check you make on them within 1 minute gains a 1d4 Bonus.",
       "location": "1",
       "data": "ASC=1:AS7=1:TD"
     },
     {
-      "name": "Combat Medic",
-      "description": "Gain +1 Medicine. When you use a medical ability on an ally in combat, you don't provoke opportunity attacks.",
+      "name": "Nimble Hands",
+      "description": "You are trained to be quick and efficient, even during stressful situations. Gain +1 Coordination and +1 Concentration.",
       "location": "2a",
       "data": "ASC=1:TD"
     },
     {
-      "name": "Triage Expert",
-      "description": "Gain +1 Resilience. You can quickly assess multiple casualties and prioritize treatment. You can stabilize up to three dying creatures as a single action.",
+      "name": "Trauma Expert",
+      "description": "As a corpsman, you have been exposed to a lot of trauma. Gain +1 Resilience. Additionally, you do not lose Resolve when an ally falls Unconscious.",
       "location": "2b",
-      "data": "AS7=1:TD"
+      "data": "AS7=1:TO"
     },
     {
-      "name": "Battlefield Treatment",
-      "description": "Gain +1 Medicine and +1 Physical Mitigation. Your medical abilities can be used while under fire without penalty.",
+      "name": "Basic Medicine",
+      "description": "You have been trained in the basics of medicine. Gain +1 Medicine. When you successfully save an Ally that is Bleeding Out, both you and them gain +1 Resolve.",
       "location": "3",
-      "data": "ASC=1:AD4=1:TD"
+      "data": ""
     },
     {
-      "name": "Action : Emergency Evac",
-      "description": "You can move a wounded ally up to half your movement speed without provoking opportunity attacks. The ally gains temporary hit points equal to your Medicine modifier until the end of your next turn.",
+      "name": "Free Action : Quick Treatment",
+      "description": "You can apply medicine such as medkits, injections and boosters as a Free Action instead of an Action.",
       "location": "4a",
-      "data": "XX3"
+      "data": "Y"
     },
     {
-      "name": "Reaction : Trauma Response",
-      "description": "When an ally within 30 feet takes damage that would reduce them to 0 hit points, you can use your reaction to rush to them and keep them at 1 hit point instead.",
+      "name": "Free Action : Bring to Safety",
+      "description": "When ending your movement next to an ally who is either Prone or at 0 Health, you pick them up and move up to 4 units, placing them in an adjacent tile.",
       "location": "4b",
-      "data": "ZX2"
+      "data": "Y"
     },
     {
-      "name": "Advanced Field Medicine",
-      "description": "Gain +1 Medicine and +1 Resilience. You can cure one disease, poison effect, or condition when treating a wounded ally in addition to healing them.",
+      "name": "Cross-Trained",
+      "description": "While you are a medic first, you have undergone the same rigerous training of accomplished soldiers and know how to handle yourself when under fire. Gain +1 Deflect and +1 Evasion.",
       "location": "5",
-      "data": "ASC=1:AS7=1:TD"
+      "data": "AS2=1:AS4=1"
     },
     {
-      "name": "Action : Mass Casualty Response",
-      "description": "You can treat up to three allies within 30 feet simultaneously. Each ally regains hit points equal to 2d6 + your Medicine modifier.",
+      "name": "Trusted Figure",
+      "description": "Corpsman are honored in many cultures. Gain +1 Presence. The first Lifeline Check your allies make each day while within 6 units of you gains a 1d4 bonus.",
       "location": "6a",
       "data": "XX3"
     },
     {
-      "name": "Medical Innovation",
-      "description": "Gain +1 Medicine and +1 Science. You can improvise medical supplies from available materials, never suffering penalties for lack of proper medical equipment.",
+      "name": "Rifle Training",
+      "description": "Your top priority is keeping your allies alive, and sometimes that involves shooting back. Gain +1 Ranged Weapons.",
       "location": "6b",
       "data": "ASC=1:ASA=1:TD"
     },
     {
       "name": "Master Corpsman",
-      "description": "Gain +1 Medicine and +1 Resilience. Your healing abilities restore an additional 2d8 hit points. Once per combat, you can revive a fallen ally as an action, returning them to half their maximum hit points.",
+      "description": "Gain +1 Medicine. If an Ally has died within the last minute and still has their vital organs, you can revive them to a Stable state by successfully using the Triage Action 3 times in a row.",
       "location": "7",
-      "data": "ASC=1:AS7=1:TD"
+      "data": "ASC=1:TD"
     }
   ]
 }

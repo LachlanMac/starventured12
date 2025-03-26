@@ -21,19 +21,19 @@
       "data": "W2DY:W3DY:W2AD4=1:W3AD4=1"
     },
     {
-      "name": "Peak Physical Condition",
-      "description": "Gain +1 Fitness and +3 maximum Health.",
+      "name": "",
+      "description": " ",
       "location": "3",
       "data": "AS1=1:AH=3"
     },
     {
-      "name": "Action : Tactical Maneuver",
-      "description": "Move up to half your movement speed without provoking opportunity attacks. This movement does not count against your movement for the turn.",
+      "name": "Action : Superior Overwatch",
+      "description": "When you take the Overwatch action",
       "location": "4a",
       "data": "XX3"
     },
     {
-      "name": "Reaction : Protect Ally",
+      "name": "Reaction : Flanking Shot",
       "description": "When an adjacent ally would be hit by an attack, you can choose to become the target of that attack instead.",
       "location": "4b",
       "data": "ZX2"
