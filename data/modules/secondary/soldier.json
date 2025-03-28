@@ -3,8 +3,8 @@
   "ruleset": 0,
   "options": [
     {
-      "name": "Soldier",
-      "description": "Gain +1 Fitness and +1 Physical Mitigation while wearing Armor.",
+      "name": "Soldier's Training",
+      "description": "Gain +1 Concentration and +1 Fitness.",
       "location": "1",
       "data": "AS1=1:W2AD4=1:W3AD4=1"
     },
@@ -58,7 +58,7 @@
     },
     {
       "name": "Master Soldier",
-      "description": "You gain an additional action each turn that can be used only to Attack, Help, or use a Soldier ability. Additionally, gain +1 to all Attack rolls and +2 Physical Mitigation.",
+      "description": "",
       "location": "7",
       "data": "AZ2=1:AZ3=1:AZ4=1:AZM=1:AD4=2:TX"
     }
